@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Giochi SAT</title>
+  <style>
+    :root {
+      --bg1:#0d2f57;
+      --bg2:#1d6fa5;
+      --card:#ffffff;
+      --ink:#12324b;
+      --accent:#ef7d00;
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0;
+      min-height:100vh;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:white;
+      background:linear-gradient(160deg,var(--bg1),var(--bg2));
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:28px;
+    }
+    main { width:min(980px,100%); }
+    h1 {
+      margin:0 0 10px;
+      font-size:clamp(42px,8vw,78px);
+      line-height:1;
+    }
+    .intro {
+      margin:0 0 30px;
+      font-size:clamp(17px,2.3vw,23px);
+      line-height:1.45;
+      opacity:.95;
+    }
+    .grid {
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:18px;
+    }
+    a.card {
+      text-decoration:none;
+      color:var(--ink);
+      background:var(--card);
+      border-radius:22px;
+      padding:26px 22px;
+      min-height:180px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      box-shadow:0 14px 30px rgba(0,0,0,.18);
+      transition:transform .15s ease;
+    }
+    a.card:hover { transform:translateY(-3px); }
+    .num {
+      font-weight:900;
+      font-size:14px;
+      letter-spacing:.08em;
+      color:var(--accent);
+    }
+    h2 { margin:12px 0 8px; font-size:28px; }
+    p { margin:0; line-height:1.4; }
+    .go { margin-top:22px; font-weight:800; color:var(--accent); }
+    @media (max-width:760px) {
+      .grid { grid-template-columns:1fr; }
+      a.card { min-height:150px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Giochi SAT</h1>
+    <p class="intro">Scegli un gioco e inizia.</p>
+    <div class="grid">
+      <a class="card" href="memory/">
+        <div>
+          <div class="num">GIOCO 1</div>
+          <h2>Memory Match</h2>
+          <p>Trova tutte le coppie prima che il tempo finisca.</p>
+        </div>
+        <div class="go">Gioca →</div>
+      </a>
+
+      <a class="card" href="missione-satellite/">
+        <div>
+          <div class="num">GIOCO 2</div>
+          <h2>Missione satellite</h2>
+          <p>Apri il gioco dedicato alla missione satellitare.</p>
+        </div>
+        <div class="go">Gioca →</div>
+      </a>
+
+      <a class="card" href="quiz-terra/">
+        <div>
+          <div class="num">GIOCO 3</div>
+          <h2>Osserva la Terra</h2>
+          <p>Apri il quiz dedicato all'osservazione della Terra.</p>
+        </div>
+        <div class="go">Gioca →</div>
+      </a>
+    </div>
+  </main>
+</body>
+</html>
