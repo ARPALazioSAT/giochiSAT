@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Classifica Memory Match</title>
+  <style>
+    :root { --ink:#830c0e; --accent:#fb64d0; --bg:#fff5fb; }
+    * { box-sizing:border-box; }
+    body {
+      margin:0; min-height:100vh; font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:linear-gradient(180deg,#f39ed9,#ffd3ef,#fff); color:var(--ink); padding:32px;
+    }
+    main { width:min(1000px,100%); margin:auto; }
+    header { text-align:center; margin-bottom:24px; }
+    h1 { font-size:clamp(42px,7vw,78px); margin:0 0 8px; line-height:1; }
+    .sub { font-size:clamp(17px,2vw,24px); margin:0; }
+    .panel { background:#fff; border-radius:26px; padding:22px; box-shadow:0 12px 28px rgba(0,0,0,.12); }
+    table { width:100%; border-collapse:collapse; font-size:clamp(17px,2vw,25px); }
+    th,td { padding:14px 10px; border-bottom:1px solid #f0dce9; text-align:left; }
+    th:nth-child(1), td:nth-child(1) { width:80px; text-align:center; font-weight:900; }
+    th:nth-child(3), td:nth-child(3), th:nth-child(4), td:nth-child(4) { text-align:right; }
+    tbody tr:first-child { font-weight:900; font-size:1.12em; }
+    .status { text-align:center; padding:18px; font-weight:700; }
+    .updated { text-align:right; margin-top:12px; opacity:.7; font-size:14px; }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Memory Match</h1>
+    <p class="sub">Classifica live — migliori tempi</p>
+  </header>
+  <section class="panel">
+    <div id="status" class="status">Caricamento…</div>
+    <table id="table" hidden>
+      <thead><tr><th>#</th><th>Nickname</th><th>Tentativi</th><th>Tempo</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div id="updated" class="updated"></div>
+  </section>
+</main>
+
+<script>
+  const SUPABASE_URL = "https://tbjbtghzzqfximtjhutk.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_uzkoqY4PTm6VSd1fugUuPQ_VHb-wEVS";
+  const TABLE_NAME = "memory_scores";
+
+  const statusEl = document.getElementById("status");
+  const tableEl = document.getElementById("table");
+  const rowsEl = document.getElementById("rows");
+  const updatedEl = document.getElementById("updated");
+
+  function configured() {
+    return SUPABASE_URL.startsWith("https://") &&
+           !SUPABASE_URL.includes("INSERISCI_") &&
+           !SUPABASE_ANON_KEY.includes("INSERISCI_");
+  }
+
+  function formatMs(ms) {
+    return (ms / 1000).toFixed(2).replace(".", ",") + " s";
+  }
+
+  async function refresh() {
+    if (!configured()) {
+      statusEl.textContent = "Database non ancora configurato.";
+      return;
+    }
+    try {
+      const params = new URLSearchParams({
+        select: "nickname,elapsed_ms,moves,created_at",
+        order: "elapsed_ms.asc",
+        limit: "20"
+      });
+
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE_NAME}?${params.toString()}`, {
+        headers: {
+          "apikey": SUPABASE_ANON_KEY,
+          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      });
+
+      if (!response.ok) throw new Error(await response.text());
+      const data = await response.json();
+
+      rowsEl.innerHTML = "";
+      data.forEach((r, i) => {
+        const tr = document.createElement("tr");
+        const vals = [i + 1, r.nickname, r.moves, formatMs(r.elapsed_ms)];
+        vals.forEach(v => {
+          const td = document.createElement("td");
+          td.textContent = v;
+          tr.appendChild(td);
+        });
+        rowsEl.appendChild(tr);
+      });
+
+      statusEl.hidden = data.length > 0;
+      statusEl.textContent = data.length ? "" : "Nessun risultato ancora.";
+      tableEl.hidden = data.length === 0;
+      updatedEl.textContent = "Aggiornata alle " + new Date().toLocaleTimeString("it-IT");
+    } catch (err) {
+      console.error(err);
+      statusEl.hidden = false;
+      tableEl.hidden = true;
+      statusEl.textContent = "Classifica temporaneamente non disponibile.";
+    }
+  }
+
+  refresh();
+  setInterval(refresh, 5000);
+</script>
+</body>
+</html>
