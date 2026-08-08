@@ -14,6 +14,51 @@
       color:var(--ink); padding:28px;
     }
     main { width:min(1500px,100%); margin:auto; }
+
+    .institutional-header {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:24px;
+      background:rgba(255,255,255,.96);
+      border-radius:20px;
+      padding:12px 20px;
+      margin-bottom:22px;
+      box-shadow:0 10px 24px rgba(0,0,0,.10);
+    }
+    .institutional-brand {
+      display:flex;
+      align-items:center;
+      gap:20px;
+      min-width:0;
+    }
+    .institutional-logo {
+      display:block;
+      width:min(330px,32vw);
+      max-height:82px;
+      object-fit:contain;
+      object-position:left center;
+    }
+    .institutional-divider {
+      width:2px;
+      align-self:stretch;
+      min-height:58px;
+      background:#2d75ba;
+      opacity:.7;
+    }
+    .institutional-service {
+      font-size:clamp(17px,1.65vw,26px);
+      line-height:1.15;
+      font-weight:800;
+      color:#0b3f82;
+      max-width:420px;
+    }
+    @media (max-width:760px) {
+      .institutional-header { padding:12px 14px; }
+      .institutional-brand { gap:12px; }
+      .institutional-logo { width:42vw; max-height:66px; }
+      .institutional-service { font-size:15px; }
+    }
     header { text-align:center; margin-bottom:24px; }
     h1 { font-size:clamp(42px,6vw,78px); margin:0 0 8px; line-height:1; }
     .sub { font-size:clamp(17px,2vw,24px); margin:0; }
@@ -56,6 +101,14 @@
 </head>
 <body>
 <main>
+  <div class="institutional-header">
+    <div class="institutional-brand">
+      <img class="institutional-logo" src="../assets/logo-arpa-lazio.jpg" alt="ARPA Lazio">
+      <div class="institutional-divider" aria-hidden="true"></div>
+      <div class="institutional-service">Servizio Attività Produttive e Controlli</div>
+    </div>
+  </div>
+
   <header>
     <h1>Memory Match</h1>
     <p class="sub">Classifica live — migliori risultati per modalità</p>
