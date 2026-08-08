@@ -18,7 +18,7 @@
       min-height:100vh;
       font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
       color:white;
-      background:linear-gradient(160deg,var(--bg1),var(--bg2));
+      background:linear-gradient(160deg,#0f4f8e,#2381bd);
       display:flex;
       align-items:center;
       justify-content:center;
@@ -36,6 +36,59 @@
       line-height:1.45;
       opacity:.95;
     }
+    .arpa-header {
+      display:flex;
+      align-items:center;
+      gap:24px;
+      background:rgba(255,255,255,.96);
+      color:#0b3f82;
+      border-radius:24px;
+      padding:20px 26px;
+      margin-bottom:34px;
+      box-shadow:0 14px 30px rgba(0,0,0,.14);
+    }
+    .arpa-logo-wrap {
+      flex:0 1 360px;
+      min-width:180px;
+    }
+    .arpa-logo {
+      display:block;
+      width:100%;
+      max-height:92px;
+      object-fit:contain;
+      object-position:left center;
+    }
+    .arpa-divider {
+      width:2px;
+      align-self:stretch;
+      min-height:70px;
+      background:#2d75ba;
+      opacity:.75;
+    }
+    .arpa-service {
+      font-size:clamp(21px,2.5vw,34px);
+      font-weight:800;
+      line-height:1.15;
+      max-width:430px;
+    }
+    .welcome { margin-bottom:28px; }
+    .welcome h1 {
+      font-size:clamp(42px,7vw,72px);
+      margin-bottom:12px;
+    }
+    @media (max-width:700px) {
+      .arpa-header {
+        flex-direction:column;
+        align-items:flex-start;
+        gap:14px;
+        padding:18px;
+      }
+      .arpa-logo-wrap { min-width:0; width:100%; }
+      .arpa-logo { max-width:320px; }
+      .arpa-divider { width:100%; height:2px; min-height:2px; }
+      .arpa-service { max-width:none; }
+    }
+
     .grid {
       display:grid;
       grid-template-columns:repeat(3,minmax(0,1fr));
@@ -72,8 +125,18 @@
 </head>
 <body>
   <main>
-    <h1>Giochi SAT</h1>
-    <p class="intro">Scegli un gioco e inizia.</p>
+    <header class="arpa-header">
+      <div class="arpa-logo-wrap">
+        <img class="arpa-logo" src="assets/logo-arpa-lazio.jpg" alt="ARPA Lazio">
+      </div>
+      <div class="arpa-divider" aria-hidden="true"></div>
+      <div class="arpa-service">Servizio Attività Produttive e Controlli</div>
+    </header>
+
+    <section class="welcome">
+      <h1>Scegli il tuo gioco</h1>
+      <p class="intro">Divertiti, mettiti alla prova e scopri l’ambiente che ti circonda.</p>
+    </section>
     <div class="grid">
       <a class="card" href="memory/">
         <div>

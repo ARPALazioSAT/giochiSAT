@@ -6,11 +6,11 @@
   <title>Memory Match</title>
   <style>
     :root {
-      --bg-1: #f39ed9;
-      --bg-2: #ffd3ef;
-      --bg-3: #ffffff;
-      --ink: #830c0e;
-      --accent: #fb64d0;
+      --bg-1: #79bff2;
+      --bg-2: #c9e9ff;
+      --bg-3: #f7fcff;
+      --ink: #0b3f82;
+      --accent: #2188e8;
       --card-back: #ffffff;
       --panel: #ffffff;
       --radius: 18px;
@@ -42,7 +42,7 @@
     .player-box { max-width: 440px; margin: 0 auto 20px; text-align:left; }
     .player-box label { display:block; font-weight:800; margin-bottom:7px; }
     .player-box input {
-      width:100%; border:2px solid rgba(131,12,14,.16); border-radius:14px;
+      width:100%; border:2px solid rgba(11,63,130,.16); border-radius:14px;
       padding:13px 15px; background:#fff; color:var(--ink); outline:none;
     }
     .player-box input:focus { border-color:var(--accent); }
@@ -73,7 +73,7 @@
       border-radius: var(--radius); outline: none; display: block; width: 100%; padding: 0;
       border: 0; background: transparent; appearance: none; -webkit-appearance: none;
     }
-    .memory-card:focus-visible { box-shadow: 0 0 0 4px rgba(251,100,208,.45); }
+    .memory-card:focus-visible { box-shadow: 0 0 0 4px rgba(33,136,232,.42); }
     .card-inner { display:block; width:100%; height:100%; position:relative; transform-style:preserve-3d; transition:transform .35s ease; }
     .memory-card.flipped .card-inner, .memory-card.matched .card-inner { transform: rotateY(180deg); }
     .card-face {
@@ -83,7 +83,7 @@
     .card-back {
       display:flex; align-items:center; justify-content:center; background:var(--card-back);
       color:#e4e4e4; font-weight:900; font-size:clamp(28px,5vw,54px);
-      border:2px solid rgba(131,12,14,.08);
+      border:2px solid rgba(11,63,130,.08);
     }
     .card-front { transform:rotateY(180deg); background:#ddd; }
     .card-front img { width:100%; height:100%; object-fit:cover; display:block; }
