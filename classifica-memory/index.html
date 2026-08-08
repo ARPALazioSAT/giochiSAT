@@ -5,72 +5,131 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Classifica Memory Match</title>
   <style>
-    :root { --ink:#830c0e; --accent:#fb64d0; --bg:#fff5fb; }
+    :root { --ink:#830c0e; --accent:#fb64d0; --panel:#fff; }
     * { box-sizing:border-box; }
     body {
-      margin:0; min-height:100vh; font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-      background:linear-gradient(180deg,#f39ed9,#ffd3ef,#fff); color:var(--ink); padding:32px;
+      margin:0; min-height:100vh;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:linear-gradient(180deg,#f39ed9,#ffd3ef,#fff);
+      color:var(--ink); padding:28px;
     }
-    main { width:min(1000px,100%); margin:auto; }
+    main { width:min(1500px,100%); margin:auto; }
     header { text-align:center; margin-bottom:24px; }
-    h1 { font-size:clamp(42px,7vw,78px); margin:0 0 8px; line-height:1; }
+    h1 { font-size:clamp(42px,6vw,78px); margin:0 0 8px; line-height:1; }
     .sub { font-size:clamp(17px,2vw,24px); margin:0; }
-    .panel { background:#fff; border-radius:26px; padding:22px; box-shadow:0 12px 28px rgba(0,0,0,.12); }
-    table { width:100%; border-collapse:collapse; font-size:clamp(17px,2vw,25px); }
-    th,td { padding:14px 10px; border-bottom:1px solid #f0dce9; text-align:left; }
-    th:nth-child(1), td:nth-child(1) { width:80px; text-align:center; font-weight:900; }
+    .boards {
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:18px;
+      align-items:start;
+    }
+    .panel {
+      background:var(--panel);
+      border-radius:24px;
+      padding:18px;
+      box-shadow:0 12px 28px rgba(0,0,0,.12);
+    }
+    .panel h2 {
+      margin:0 0 12px;
+      text-align:center;
+      font-size:clamp(28px,3vw,42px);
+    }
+    .panel .mode {
+      display:inline-block;
+      min-width:90px;
+      padding:7px 14px;
+      border-radius:999px;
+      background:var(--accent);
+      color:#fff;
+    }
+    table { width:100%; border-collapse:collapse; font-size:clamp(15px,1.6vw,22px); }
+    th,td { padding:11px 7px; border-bottom:1px solid #f0dce9; text-align:left; }
+    th:nth-child(1), td:nth-child(1) { width:44px; text-align:center; font-weight:900; }
     th:nth-child(3), td:nth-child(3), th:nth-child(4), td:nth-child(4) { text-align:right; }
-    tbody tr:first-child { font-weight:900; font-size:1.12em; }
-    .status { text-align:center; padding:18px; font-weight:700; }
-    .updated { text-align:right; margin-top:12px; opacity:.7; font-size:14px; }
+    tbody tr:first-child { font-weight:900; }
+    .empty { text-align:center; padding:20px 8px; font-weight:700; opacity:.8; }
+    .updated { text-align:right; margin-top:14px; opacity:.7; font-size:14px; }
+    @media (max-width:1000px) {
+      .boards { grid-template-columns:1fr; }
+    }
   </style>
 </head>
 <body>
 <main>
   <header>
     <h1>Memory Match</h1>
-    <p class="sub">Classifica live — migliori tempi</p>
+    <p class="sub">Classifica live — migliori risultati per modalità</p>
   </header>
-  <section class="panel">
-    <div id="status" class="status">Caricamento…</div>
-    <table id="table" hidden>
-      <thead><tr><th>#</th><th>Nickname</th><th>Tentativi</th><th>Tempo</th></tr></thead>
-      <tbody id="rows"></tbody>
-    </table>
-    <div id="updated" class="updated"></div>
+
+  <section class="boards">
+    <div class="panel">
+      <h2><span class="mode">30 s</span></h2>
+      <div id="empty-30" class="empty">Caricamento…</div>
+      <table id="table-30" hidden>
+        <thead><tr><th>#</th><th>Nickname</th><th>Tentativi</th><th>Tempo</th></tr></thead>
+        <tbody id="rows-30"></tbody>
+      </table>
+    </div>
+
+    <div class="panel">
+      <h2><span class="mode">60 s</span></h2>
+      <div id="empty-60" class="empty">Caricamento…</div>
+      <table id="table-60" hidden>
+        <thead><tr><th>#</th><th>Nickname</th><th>Tentativi</th><th>Tempo</th></tr></thead>
+        <tbody id="rows-60"></tbody>
+      </table>
+    </div>
+
+    <div class="panel">
+      <h2><span class="mode">90 s</span></h2>
+      <div id="empty-90" class="empty">Caricamento…</div>
+      <table id="table-90" hidden>
+        <thead><tr><th>#</th><th>Nickname</th><th>Tentativi</th><th>Tempo</th></tr></thead>
+        <tbody id="rows-90"></tbody>
+      </table>
+    </div>
   </section>
+
+  <div id="updated" class="updated"></div>
 </main>
 
 <script>
   const SUPABASE_URL = "https://tbjbtghzzqfximtjhutk.supabase.co";
   const SUPABASE_ANON_KEY = "sb_publishable_uzkoqY4PTm6VSd1fugUuPQ_VHb-wEVS";
   const TABLE_NAME = "memory_scores";
-
-  const statusEl = document.getElementById("status");
-  const tableEl = document.getElementById("table");
-  const rowsEl = document.getElementById("rows");
-  const updatedEl = document.getElementById("updated");
-
-  function configured() {
-    return SUPABASE_URL.startsWith("https://") &&
-           !SUPABASE_URL.includes("INSERISCI_") &&
-           !SUPABASE_ANON_KEY.includes("INSERISCI_");
-  }
+  const MODES = [30, 60, 90];
 
   function formatMs(ms) {
     return (ms / 1000).toFixed(2).replace(".", ",") + " s";
   }
 
-  async function refresh() {
-    if (!configured()) {
-      statusEl.textContent = "Database non ancora configurato.";
-      return;
-    }
+  function bestPerNickname(rows) {
+    const best = new Map();
+    rows.forEach(row => {
+      const key = row.nickname.trim().toLowerCase();
+      const current = best.get(key);
+      if (!current ||
+          row.elapsed_ms < current.elapsed_ms ||
+          (row.elapsed_ms === current.elapsed_ms && row.moves < current.moves)) {
+        best.set(key, row);
+      }
+    });
+    return [...best.values()]
+      .sort((a,b) => a.elapsed_ms - b.elapsed_ms || a.moves - b.moves)
+      .slice(0,10);
+  }
+
+  async function loadMode(mode) {
+    const empty = document.getElementById(`empty-${mode}`);
+    const table = document.getElementById(`table-${mode}`);
+    const tbody = document.getElementById(`rows-${mode}`);
+
     try {
       const params = new URLSearchParams({
-        select: "nickname,elapsed_ms,moves,created_at",
+        select: "nickname,elapsed_ms,moves,time_limit,created_at",
+        time_limit: `eq.${mode}`,
         order: "elapsed_ms.asc",
-        limit: "20"
+        limit: "200"
       });
 
       const response = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE_NAME}?${params.toString()}`, {
@@ -81,30 +140,39 @@
       });
 
       if (!response.ok) throw new Error(await response.text());
-      const data = await response.json();
+      const rows = bestPerNickname(await response.json());
 
-      rowsEl.innerHTML = "";
-      data.forEach((r, i) => {
+      tbody.innerHTML = "";
+      rows.forEach((r, i) => {
         const tr = document.createElement("tr");
-        const vals = [i + 1, r.nickname, r.moves, formatMs(r.elapsed_ms)];
-        vals.forEach(v => {
+        [i + 1, r.nickname, r.moves, formatMs(r.elapsed_ms)].forEach(v => {
           const td = document.createElement("td");
           td.textContent = v;
           tr.appendChild(td);
         });
-        rowsEl.appendChild(tr);
+        tbody.appendChild(tr);
       });
 
-      statusEl.hidden = data.length > 0;
-      statusEl.textContent = data.length ? "" : "Nessun risultato ancora.";
-      tableEl.hidden = data.length === 0;
-      updatedEl.textContent = "Aggiornata alle " + new Date().toLocaleTimeString("it-IT");
+      if (rows.length) {
+        empty.hidden = true;
+        table.hidden = false;
+      } else {
+        empty.hidden = false;
+        empty.textContent = "Nessun risultato ancora.";
+        table.hidden = true;
+      }
     } catch (err) {
       console.error(err);
-      statusEl.hidden = false;
-      tableEl.hidden = true;
-      statusEl.textContent = "Classifica temporaneamente non disponibile.";
+      empty.hidden = false;
+      empty.textContent = "Classifica non disponibile.";
+      table.hidden = true;
     }
+  }
+
+  async function refresh() {
+    await Promise.all(MODES.map(loadMode));
+    document.getElementById("updated").textContent =
+      "Aggiornata alle " + new Date().toLocaleTimeString("it-IT");
   }
 
   refresh();

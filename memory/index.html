@@ -157,7 +157,7 @@
       <p id="result-text"></p>
       <div id="save-status" class="status"></div>
       <div class="leaderboard">
-        <h4>Classifica — migliori tempi</h4>
+        <h4 id="leaderboard-title">Classifica — migliori tempi</h4>
         <ol id="leaderboard-list"><li>Caricamento…</li></ol>
       </div>
       <p class="offline-note">La classifica richiede una connessione Internet.</p>
@@ -210,6 +210,7 @@
     const homeStatus = document.getElementById("home-status");
     const saveStatus = document.getElementById("save-status");
     const leaderboardList = document.getElementById("leaderboard-list");
+    const leaderboardTitle = document.getElementById("leaderboard-title");
     const playerHeading = document.getElementById("player-heading");
 
     const savedNick = localStorage.getItem("memory_nickname");
@@ -426,11 +427,13 @@
         return;
       }
 
+      leaderboardTitle.textContent = `Classifica ${selectedTime} s — migliori tempi`;
       leaderboardList.innerHTML = "<li>Caricamento…</li>";
 
       try {
         const params = new URLSearchParams({
-          select: "nickname,elapsed_ms,moves",
+          select: "nickname,elapsed_ms,moves,time_limit",
+          time_limit: `eq.${selectedTime}`,
           order: "elapsed_ms.asc",
           limit: "10"
         });
@@ -446,12 +449,28 @@
         const rows = await response.json();
 
         if (!rows.length) {
-          leaderboardList.innerHTML = "<li>Nessun risultato ancora.</li>";
+          leaderboardList.innerHTML = "<li>Nessun risultato ancora per questa modalità.</li>";
           return;
         }
 
-        leaderboardList.innerHTML = "";
+        // Mantiene solo il miglior risultato per ciascun nickname.
+        const bestByNickname = new Map();
         rows.forEach(row => {
+          const key = row.nickname.trim().toLowerCase();
+          const current = bestByNickname.get(key);
+          if (!current ||
+              row.elapsed_ms < current.elapsed_ms ||
+              (row.elapsed_ms === current.elapsed_ms && row.moves < current.moves)) {
+            bestByNickname.set(key, row);
+          }
+        });
+
+        const bestRows = [...bestByNickname.values()]
+          .sort((a, b) => a.elapsed_ms - b.elapsed_ms || a.moves - b.moves)
+          .slice(0, 10);
+
+        leaderboardList.innerHTML = "";
+        bestRows.forEach(row => {
           const li = document.createElement("li");
           const name = document.createElement("span");
           name.textContent = `${row.nickname} · ${row.moves} tentativi`;
