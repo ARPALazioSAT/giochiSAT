@@ -1,173 +1,86 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Giochi SAT</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Giochi SAT - ARPA Lazio</title>
   <style>
-    :root {
-      --bg1:#0d2f57;
-      --bg2:#1d6fa5;
-      --card:#ffffff;
-      --ink:#12324b;
-      --accent:#ef7d00;
+    :root{
+      --blu:#1769aa;--blu2:#2f6bff;--azzurro:#eaf4ff;--verde:#2e9d63;
+      --testo:#17324d;--muted:#60758a;--card:#fff;--bordo:#dce8f4;
     }
-    * { box-sizing:border-box; }
-    body {
-      margin:0;
-      min-height:100vh;
-      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-      color:white;
-      background:linear-gradient(160deg,#0f4f8e,#2381bd);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:28px;
-    }
-    main { width:min(980px,100%); }
-    h1 {
-      margin:0 0 10px;
-      font-size:clamp(42px,8vw,78px);
-      line-height:1;
-    }
-    .intro {
-      margin:0 0 30px;
-      font-size:clamp(17px,2.3vw,23px);
-      line-height:1.45;
-      opacity:.95;
-    }
-    .arpa-header {
-      display:flex;
-      align-items:center;
-      gap:28px;
-      background:rgba(255,255,255,.98);
-      color:#0b3f82;
-      border-radius:22px;
-      padding:14px 24px;
-      margin-bottom:30px;
-      box-shadow:0 14px 30px rgba(0,0,0,.14);
-    }
-    .arpa-logo-wrap {
-      flex:0 0 430px;
-      min-width:260px;
-      display:flex;
-      align-items:center;
-    }
-    .arpa-logo {
-      display:block;
-      width:100%;
-      max-width:430px;
-      max-height:118px;
-      object-fit:contain;
-      object-position:left center;
-    }
-    .arpa-divider {
-      width:2px;
-      align-self:stretch;
-      min-height:70px;
-      background:#2d75ba;
-      opacity:.75;
-    }
-    .arpa-service {
-      font-size:clamp(21px,2.35vw,32px);
-      font-weight:800;
-      line-height:1.16;
-      max-width:470px;
-    }
-    .welcome { margin-bottom:28px; }
-    .welcome h1 {
-      font-size:clamp(42px,7vw,72px);
-      margin-bottom:12px;
-    }
-    @media (max-width:700px) {
-      .arpa-header {
-        flex-direction:column;
-        align-items:flex-start;
-        gap:14px;
-        padding:18px;
-      }
-      .arpa-logo-wrap { min-width:0; width:100%; flex-basis:auto; }
-      .arpa-logo { max-width:380px; max-height:105px; }
-      .arpa-divider { width:100%; height:2px; min-height:2px; }
-      .arpa-service { max-width:none; }
-    }
-
-    .grid {
-      display:grid;
-      grid-template-columns:repeat(3,minmax(0,1fr));
-      gap:18px;
-    }
-    a.card {
-      text-decoration:none;
-      color:var(--ink);
-      background:var(--card);
-      border-radius:22px;
-      padding:26px 22px;
-      min-height:180px;
-      display:flex;
-      flex-direction:column;
-      justify-content:space-between;
-      box-shadow:0 14px 30px rgba(0,0,0,.18);
-      transition:transform .15s ease;
-    }
-    a.card:hover { transform:translateY(-3px); }
-    .num {
-      font-weight:900;
-      font-size:14px;
-      letter-spacing:.08em;
-      color:var(--accent);
-    }
-    h2 { margin:12px 0 8px; font-size:28px; }
-    p { margin:0; line-height:1.4; }
-    .go { margin-top:22px; font-weight:800; color:var(--accent); }
-    @media (max-width:760px) {
-      .grid { grid-template-columns:1fr; }
-      a.card { min-height:150px; }
-    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0}
+    body{font-family:Arial,Helvetica,sans-serif;color:var(--testo);background:linear-gradient(180deg,#eaf4ff 0%,#f8fbff 46%,#fff 100%);min-height:100vh}
+    .wrap{max-width:1050px;margin:0 auto;padding:28px 20px 52px}
+    header{display:flex;align-items:center;gap:18px;margin-bottom:26px}
+    header img{width:min(240px,42vw);height:auto;display:block}
+    .service{border-left:2px solid #b8cde3;padding-left:16px;color:#425d78;font-size:14px;line-height:1.35;font-weight:700}
+    .hero{text-align:center;margin:22px auto 30px;max-width:760px}
+    h1{font-size:clamp(30px,6vw,50px);margin:0 0 8px;color:#174f83;line-height:1.05}
+    .hero p{margin:0;color:var(--muted);font-size:clamp(16px,2.8vw,20px);line-height:1.5}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+    .game{display:flex;flex-direction:column;min-height:205px;background:var(--card);border:2px solid var(--bordo);border-radius:22px;padding:22px;text-decoration:none;color:inherit;box-shadow:0 12px 32px rgba(32,74,112,.08);transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
+    .game:hover,.game:focus-visible{transform:translateY(-3px);border-color:#8dbcf1;box-shadow:0 16px 36px rgba(32,74,112,.14);outline:none}
+    .num{font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#5f7890;margin-bottom:10px}
+    .game h2{font-size:24px;line-height:1.15;margin:0 0 10px;color:#164f84}
+    .game p{color:var(--muted);line-height:1.5;margin:0 0 18px;flex:1}
+    .go{align-self:flex-start;background:var(--blu2);color:#fff;border-radius:12px;padding:10px 15px;font-weight:800;font-size:14px}
+    .new .num{color:#19734b}.new .go{background:var(--verde)}
+    footer{text-align:center;color:#71869b;font-size:12px;margin-top:28px}
+    @media(max-width:700px){header{align-items:flex-start}.service{font-size:12px}.grid{grid-template-columns:1fr}.game{min-height:0}}
   </style>
 </head>
 <body>
-  <main>
-    <header class="arpa-header">
-      <div class="arpa-logo-wrap">
-        <img class="arpa-logo" src="assets/logo-arpa-lazio.jpg" alt="ARPA Lazio">
-      </div>
-      <div class="arpa-divider" aria-hidden="true"></div>
-      <div class="arpa-service">Servizio Attività Produttive e Controlli</div>
+  <main class="wrap">
+    <header>
+      <img src="assets/logo-arpa-lazio.jpg" alt="ARPA Lazio">
+      <div class="service">Servizio Attività Produttive<br>e Controlli</div>
     </header>
 
-    <section class="welcome">
-      <h1>Scegli il tuo gioco</h1>
-      <p class="intro">Divertiti, mettiti alla prova e scopri l’ambiente che ti circonda.</p>
+    <section class="hero">
+      <h1>Giochi SAT</h1>
+      <p>Scegli un gioco e scopri come i satelliti aiutano a osservare la Terra e l'ambiente.</p>
     </section>
-    <div class="grid">
-      <a class="card" href="memory/">
-        <div>
-          <div class="num">GIOCO 1</div>
-          <h2>Memory Match</h2>
-          <p>Trova tutte le coppie prima che il tempo finisca.</p>
-        </div>
-        <div class="go">Gioca →</div>
+
+    <section class="grid" aria-label="Elenco dei giochi">
+      <a class="game" href="memory/">
+        <div class="num">Gioco 1</div>
+        <h2>Memory Match</h2>
+        <p>Trova le coppie e completa il Memory nel minor tempo possibile.</p>
+        <span class="go">Gioca</span>
       </a>
 
-      <a class="card" href="missione-satellite/">
-        <div>
-          <div class="num">GIOCO 2</div>
-          <h2>Missione satellite</h2>
-          <p>Apri il gioco dedicato alla missione satellitare.</p>
-        </div>
-        <div class="go">Gioca →</div>
+      <a class="game" href="missione-satellite/">
+        <div class="num">Gioco 2</div>
+        <h2>Missione satellite</h2>
+        <p>Completa la missione e scopri come lavora un satellite per l'osservazione della Terra.</p>
+        <span class="go">Gioca</span>
       </a>
 
-      <a class="card" href="quiz-terra/">
-        <div>
-          <div class="num">GIOCO 3</div>
-          <h2>Osserva la Terra</h2>
-          <p>Apri il quiz dedicato all'osservazione della Terra.</p>
-        </div>
-        <div class="go">Gioca →</div>
+      <a class="game" href="quiz-terra/">
+        <div class="num">Gioco 3</div>
+        <h2>Osserva la Terra</h2>
+        <p>Metti alla prova quello che sai sull'osservazione satellitare del nostro pianeta.</p>
+        <span class="go">Gioca</span>
       </a>
-    </div>
+
+      <a class="game new" href="sensore-adatto/">
+        <div class="num">Nuovo · Gioco 4</div>
+        <h2>Monitora con il sensore giusto</h2>
+        <p>Scegli il sensore più adatto a incendi, alluvioni, vegetazione, frane e altri problemi ambientali.</p>
+        <span class="go">Gioca</span>
+      </a>
+
+      <a class="game new" href="puzzle-satelliti/">
+        <div class="num">Nuovo · Gioco 5</div>
+        <h2>Puzzle della Terra</h2>
+        <p>Ricomponi l'immagine della Terra osservata dai satelliti Sentinel-2.</p>
+        <span class="go">Gioca</span>
+      </a>
+    </section>
+
+    <footer>ARPA Lazio · Giochi SAT</footer>
   </main>
 </body>
 </html>
