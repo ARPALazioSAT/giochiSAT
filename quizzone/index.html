@@ -70,6 +70,31 @@ async function submitAnswer(pos,opt,btn){ [...$('options').children].forEach(b=>
 }
 async function refresh(){ try{ const {data,error}=await sb.rpc('quiz_public_state',{p_session_code:SESSION_CODE}); if(error) throw error; const s=Array.isArray(data)?data[0]:data; if(!s){show('waiting');return;} if(s.status==='waiting'){show('waiting');return;} if(s.status==='finished'){show('finished');return;} if(s.status==='active' && s.current_question>0){ if(s.question_open){show('questionCard'); if(lastQ!==s.current_question) renderQuestion(s.current_question);} else {show('closed');} } }catch(e){show('waiting');}
 }
-(async()=>{try{await loadQuestions();await join();await ping();await refresh();setInterval(refresh,1000);setInterval(ping,20000);}catch(e){$('loading').innerHTML='<div class="msg err">Connessione non disponibile. Controlla Internet e ricarica la pagina.</div>';}})();
+(async()=>{
+  try{
+    await loadQuestions();
+    try{
+      await join();
+      await ping();
+    }catch(joinError){
+      // Se la sessione e' gia terminata, quiz_join rifiuta l'accesso:
+      // mostriamo il messaggio finale invece di un falso errore di connessione.
+      const {data:stateData,error:stateError}=await sb.rpc('quiz_public_state',{p_session_code:SESSION_CODE});
+      if(stateError) throw joinError;
+      const s=Array.isArray(stateData)?stateData[0]:stateData;
+      if(s && s.status==='finished'){
+        show('finished');
+        setInterval(refresh,1000);
+        return;
+      }
+      throw joinError;
+    }
+    await refresh();
+    setInterval(refresh,1000);
+    setInterval(ping,20000);
+  }catch(e){
+    $('loading').innerHTML='<div class="msg err">Connessione non disponibile. Controlla Internet e ricarica la pagina.</div>';
+  }
+})();
 </script>
 </body></html>
