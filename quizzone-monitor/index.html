@@ -179,6 +179,9 @@ async function renderParticipantStatus(){
   const waiting=$('waitingPlayers');
   const qplayers=$('questionPlayers');
 
+  // Il contatore in testata usa lo stesso elenco nominale mostrato sul monitor.
+  $('participants').textContent=players.length;
+
   const chips=players.map(p=>
     `<span class="playerChip ${p.answered?'answered':''}">${escapeHtml(p.nickname||'')}${p.answered?' ✓':''}</span>`
   ).join('');
@@ -194,6 +197,11 @@ async function renderParticipantStatus(){
   $('questionPlayersNote').textContent=players.length
     ? `${answered} su ${players.length} hanno risposto`
     : 'In attesa delle risposte...';
+
+  // Durante una domanda aperta il contatore delle risposte segue i nickname marcati con check.
+  if(!$('questionCard').classList.contains('hidden')){
+    $('answers').textContent=answered;
+  }
 }
 
 function escapeHtml(s){
