@@ -16,7 +16,7 @@
 .big{font-family:Fredoka;font-size:clamp(26px,8vw,38px);margin:0 0 10px}.lead{font-size:17px;line-height:1.5;color:var(--muted);font-weight:700}.pill{display:inline-flex;align-items:center;gap:8px;padding:8px 13px;border-radius:999px;background:#eef6ff;color:var(--blu);font-weight:800;font-size:14px}.dot{width:10px;height:10px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 4px #dcfce7}
 .questionNo{font-family:Fredoka;color:var(--blu);font-weight:700;font-size:16px;margin-bottom:8px}.question{font-family:Fredoka;font-size:clamp(24px,6vw,34px);line-height:1.18;margin:0 0 18px}.options{display:grid;gap:12px}.opt{width:100%;text-align:left;border:2px solid var(--bordo);background:#fff;border-radius:18px;padding:16px;font:800 17px Nunito;cursor:pointer;display:flex;gap:12px;align-items:flex-start;color:var(--testo)}.opt .n{width:34px;height:34px;display:grid;place-items:center;flex:0 0 auto;border-radius:10px;background:#edf4ff;color:var(--blu);font-family:Fredoka;font-size:19px}.opt:hover{border-color:#a8c6ff}.opt:disabled{cursor:default;opacity:.7}.opt.selected{border-color:var(--blu2);background:#eff5ff;opacity:1}
 .msg{margin-top:16px;border-radius:16px;padding:14px 16px;font-weight:800}.ok{background:#ecfdf3;color:#166534}.info{background:#eef6ff;color:#1e40af}.warn{background:#fff7ed;color:#9a3412}.err{background:#fef2f2;color:#991b1b}.spinner{width:24px;height:24px;border:3px solid #d6e4f5;border-top-color:var(--blu);border-radius:50%;animation:spin .8s linear infinite;margin:14px auto}@keyframes spin{to{transform:rotate(360deg)}}
-.footer{text-align:center;margin-top:18px;color:var(--muted);font-size:13px;font-weight:700}
+.joinBox{display:grid;gap:12px;margin-top:18px}.nickInput{width:100%;border:2px solid var(--bordo);border-radius:16px;padding:15px 16px;font:800 18px Nunito;color:var(--testo);background:#fff;outline:none}.nickInput:focus{border-color:var(--blu2);box-shadow:0 0 0 4px rgba(47,107,255,.10)}.joinBtn{width:100%;border:0;border-radius:16px;padding:15px 18px;background:var(--blu);color:#fff;font:800 17px Nunito;cursor:pointer;box-shadow:0 8px 20px rgba(29,78,216,.18)}.joinBtn:disabled{opacity:.55;cursor:default}.hello{font-family:Fredoka;font-size:20px;color:var(--blu);margin:10px 0 0}.footer{text-align:center;margin-top:18px;color:var(--muted);font-size:13px;font-weight:700}
 @media(max-width:520px){.wrap{padding:14px 12px 30px}.card{padding:18px}.brand img{width:50px;height:50px}.brand h1{font-size:21px}.opt{font-size:16px;padding:14px}}
 </style>
 </head>
@@ -26,8 +26,20 @@
 
   <section id="loading" class="card center"><div class="spinner"></div><p class="lead">Collegamento al Quizzone...</p></section>
 
+  <section id="joinCard" class="card center hidden">
+    <span class="pill"><span class="dot"></span> Quizzone Live</span>
+    <h2 class="big">Scegli il tuo nickname</h2>
+    <p class="lead">Usa un nome breve e riconoscibile. Comparirà sul monitor e nella classifica finale.</p>
+    <div class="joinBox">
+      <input id="nickname" class="nickInput" type="text" maxlength="15" autocomplete="nickname" placeholder="Es. Luna11">
+      <button id="joinBtn" class="joinBtn" type="button">ENTRA NEL QUIZZONE</button>
+      <div id="joinMsg" class="msg err hidden"></div>
+    </div>
+  </section>
+
   <section id="waiting" class="card center hidden">
     <span class="pill"><span class="dot"></span> Sei collegato</span>
+    <div class="hello" id="helloNick"></div>
     <h2 class="big">Tra poco si comincia!</h2>
     <p class="lead">Rimani su questa pagina. Quando la regia avvierà il Quizzone comparirà automaticamente la prima domanda.</p>
   </section>
@@ -56,44 +68,203 @@ const SUPABASE_URL='https://tbjbtghzzqfximtjhutk.supabase.co';
 const SUPABASE_KEY='sb_publishable_uzkoqY4PTm6VSd1fugUuPQ_VHb-wEVS';
 const SESSION_CODE='ARPA2026';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
 let token=localStorage.getItem('quizzone_token');
-if(!token){ token=(crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random()); localStorage.setItem('quizzone_token',token); }
-let questions=[]; let lastQ=0; let answeredFor=new Set(JSON.parse(localStorage.getItem('quizzone_answered')||'[]'));
+if(!token){
+  token=(crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random());
+  localStorage.setItem('quizzone_token',token);
+}
+
+let nickname=localStorage.getItem('quizzone_nickname')||'';
+let joined=false;
+let questions=[];
+let lastQ=0;
+let answeredFor=new Set(JSON.parse(localStorage.getItem('quizzone_answered')||'[]'));
+
 const $=id=>document.getElementById(id);
-function show(id){['loading','waiting','questionCard','closed','finished'].forEach(x=>$(x).classList.toggle('hidden',x!==id));}
-async function loadQuestions(){ const {data,error}=await sb.from('quiz_questions_public').select('*').order('position'); if(error) throw error; questions=data||[]; }
-async function join(){ const {error}=await sb.rpc('quiz_join',{p_session_code:SESSION_CODE,p_token:token}); if(error) throw error; }
-async function ping(){ await sb.rpc('quiz_ping',{p_session_code:SESSION_CODE,p_token:token}); }
-function renderQuestion(pos){ const q=questions.find(x=>x.position===pos); if(!q) return; lastQ=pos; $('questionNo').textContent=`Domanda ${pos} di 5`; $('questionText').textContent=q.question; const opts=[q.option_1,q.option_2,q.option_3,q.option_4]; $('options').innerHTML=''; opts.forEach((txt,i)=>{const b=document.createElement('button'); b.className='opt'; b.innerHTML=`<span class="n">${i+1}</span><span>${txt}</span>`; b.disabled=answeredFor.has(pos); b.onclick=()=>submitAnswer(pos,i+1,b); $('options').appendChild(b);}); $('answerMsg').classList.add('hidden'); if(answeredFor.has(pos)){ $('answerMsg').textContent='✓ Risposta già registrata. Guarda il monitor per scoprire il risultato!'; $('answerMsg').className='msg ok'; }
+
+function show(id){
+  ['loading','joinCard','waiting','questionCard','closed','finished']
+    .forEach(x=>$(x).classList.toggle('hidden',x!==id));
 }
-async function submitAnswer(pos,opt,btn){ [...$('options').children].forEach(b=>b.disabled=true); btn.classList.add('selected'); $('answerMsg').textContent='Invio della risposta...'; $('answerMsg').className='msg info'; try{ const {data,error}=await sb.rpc('quiz_submit_answer',{p_session_code:SESSION_CODE,p_question_position:pos,p_token:token,p_selected_option:opt}); if(error) throw error; if(data===false){ $('answerMsg').textContent='Hai già risposto a questa domanda.'; $('answerMsg').className='msg warn'; } else { answeredFor.add(pos); localStorage.setItem('quizzone_answered',JSON.stringify([...answeredFor])); $('answerMsg').textContent='✓ Risposta registrata. Guarda il monitor per scoprire il risultato!'; $('answerMsg').className='msg ok'; } }catch(e){ $('answerMsg').textContent='Non è stato possibile registrare la risposta. La domanda potrebbe essere già chiusa.'; $('answerMsg').className='msg err'; }
+
+async function loadQuestions(){
+  const {data,error}=await sb.from('quiz_questions_public').select('*').order('position');
+  if(error) throw error;
+  questions=data||[];
 }
-async function refresh(){ try{ const {data,error}=await sb.rpc('quiz_public_state',{p_session_code:SESSION_CODE}); if(error) throw error; const s=Array.isArray(data)?data[0]:data; if(!s){show('waiting');return;} if(s.status==='waiting'){show('waiting');return;} if(s.status==='finished'){show('finished');return;} if(s.status==='active' && s.current_question>0){ if(s.question_open){show('questionCard'); if(lastQ!==s.current_question) renderQuestion(s.current_question);} else {show('closed');} } }catch(e){show('waiting');}
+
+async function getState(){
+  const {data,error}=await sb.rpc('quiz_public_state',{p_session_code:SESSION_CODE});
+  if(error) throw error;
+  return Array.isArray(data)?data[0]:data;
 }
+
+async function joinWithNickname(){
+  const input=$('nickname');
+  const btn=$('joinBtn');
+  const msg=$('joinMsg');
+  const value=(input.value||'').trim();
+
+  msg.classList.add('hidden');
+
+  if(value.length<2 || value.length>15){
+    msg.textContent='Il nickname deve contenere da 2 a 15 caratteri.';
+    msg.className='msg err';
+    return;
+  }
+
+  btn.disabled=true;
+  btn.textContent='COLLEGAMENTO...';
+
+  try{
+    const {error}=await sb.rpc('quiz_join',{
+      p_session_code:SESSION_CODE,
+      p_token:token,
+      p_nickname:value
+    });
+    if(error) throw error;
+
+    nickname=value;
+    joined=true;
+    localStorage.setItem('quizzone_nickname',nickname);
+    $('helloNick').textContent=`Ciao ${nickname}!`;
+    await ping();
+    await refresh();
+
+  }catch(e){
+    const text=(e && e.message)?e.message:'';
+    if(text.toLowerCase().includes('nickname') && text.toLowerCase().includes('utilizz')){
+      msg.textContent='Questo nickname è già in uso. Scegline un altro.';
+    }else if(text.toLowerCase().includes('non valido')){
+      msg.textContent='Usa solo lettere, numeri, spazi, punto, trattino o underscore.';
+    }else{
+      msg.textContent='Non è stato possibile entrare nel Quizzone. Riprova.';
+    }
+    msg.className='msg err';
+  }finally{
+    btn.disabled=false;
+    btn.textContent='ENTRA NEL QUIZZONE';
+  }
+}
+
+async function ping(){
+  if(!joined) return;
+  await sb.rpc('quiz_ping',{p_session_code:SESSION_CODE,p_token:token});
+}
+
+function renderQuestion(pos){
+  const q=questions.find(x=>x.position===pos);
+  if(!q) return;
+  lastQ=pos;
+  $('questionNo').textContent=`Domanda ${pos} di 5`;
+  $('questionText').textContent=q.question;
+  const opts=[q.option_1,q.option_2,q.option_3,q.option_4];
+  $('options').innerHTML='';
+  opts.forEach((txt,i)=>{
+    const b=document.createElement('button');
+    b.className='opt';
+    b.innerHTML=`<span class="n">${i+1}</span><span>${txt}</span>`;
+    b.disabled=answeredFor.has(pos);
+    b.onclick=()=>submitAnswer(pos,i+1,b);
+    $('options').appendChild(b);
+  });
+  $('answerMsg').classList.add('hidden');
+  if(answeredFor.has(pos)){
+    $('answerMsg').textContent='✓ Risposta già registrata. Guarda il monitor per scoprire il risultato!';
+    $('answerMsg').className='msg ok';
+  }
+}
+
+async function submitAnswer(pos,opt,btn){
+  [...$('options').children].forEach(b=>b.disabled=true);
+  btn.classList.add('selected');
+  $('answerMsg').textContent='Invio della risposta...';
+  $('answerMsg').className='msg info';
+  try{
+    const {data,error}=await sb.rpc('quiz_submit_answer',{
+      p_session_code:SESSION_CODE,
+      p_question_position:pos,
+      p_token:token,
+      p_selected_option:opt
+    });
+    if(error) throw error;
+    if(data===false){
+      $('answerMsg').textContent='Hai già risposto a questa domanda.';
+      $('answerMsg').className='msg warn';
+    }else{
+      answeredFor.add(pos);
+      localStorage.setItem('quizzone_answered',JSON.stringify([...answeredFor]));
+      $('answerMsg').textContent='✓ Risposta registrata. Guarda il monitor per scoprire il risultato!';
+      $('answerMsg').className='msg ok';
+    }
+  }catch(e){
+    $('answerMsg').textContent='Non è stato possibile registrare la risposta. La domanda potrebbe essere già chiusa.';
+    $('answerMsg').className='msg err';
+  }
+}
+
+async function refresh(){
+  try{
+    const s=await getState();
+    if(!s){
+      if(joined) show('waiting');
+      return;
+    }
+
+    if(s.status==='finished'){
+      show('finished');
+      return;
+    }
+
+    if(!joined){
+      show('joinCard');
+      return;
+    }
+
+    if(s.status==='waiting'){
+      show('waiting');
+      return;
+    }
+
+    if(s.status==='active' && s.current_question>0){
+      if(s.question_open){
+        show('questionCard');
+        if(lastQ!==s.current_question) renderQuestion(s.current_question);
+      }else{
+        show('closed');
+      }
+    }
+  }catch(e){
+    $('loading').innerHTML='<div class="msg err">Connessione non disponibile. Controlla Internet e ricarica la pagina.</div>';
+    show('loading');
+  }
+}
+
+$('joinBtn').addEventListener('click',joinWithNickname);
+$('nickname').addEventListener('keydown',e=>{
+  if(e.key==='Enter') joinWithNickname();
+});
+$('nickname').value=nickname;
+
 (async()=>{
   try{
     await loadQuestions();
-    try{
-      await join();
-      await ping();
-    }catch(joinError){
-      // Se la sessione e' gia terminata, quiz_join rifiuta l'accesso:
-      // mostriamo il messaggio finale invece di un falso errore di connessione.
-      const {data:stateData,error:stateError}=await sb.rpc('quiz_public_state',{p_session_code:SESSION_CODE});
-      if(stateError) throw joinError;
-      const s=Array.isArray(stateData)?stateData[0]:stateData;
-      if(s && s.status==='finished'){
-        show('finished');
-        setInterval(refresh,1000);
-        return;
-      }
-      throw joinError;
+    const s=await getState();
+
+    if(s && s.status==='finished'){
+      show('finished');
+      setInterval(refresh,1000);
+      return;
     }
-    await refresh();
+
+    show('joinCard');
     setInterval(refresh,1000);
     setInterval(ping,20000);
+
   }catch(e){
     $('loading').innerHTML='<div class="msg err">Connessione non disponibile. Controlla Internet e ricarica la pagina.</div>';
+    show('loading');
   }
 })();
 </script>
