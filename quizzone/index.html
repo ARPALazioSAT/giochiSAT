@@ -128,6 +128,14 @@ async function joinWithNickname(){
     nickname=value;
     joined=true;
     localStorage.setItem('quizzone_nickname',nickname);
+
+    const currentState=await getState();
+    if(currentState && currentState.status==='waiting'){
+      answeredFor.clear();
+      localStorage.removeItem('quizzone_answered');
+      lastQ=0;
+    }
+
     $('helloNick').textContent=`Ciao ${nickname}!`;
     await ping();
     await refresh();
@@ -223,6 +231,11 @@ async function refresh(){
     }
 
     if(s.status==='waiting'){
+      // Una nuova partita e' stata preparata dalla regia:
+      // dimentica le risposte della partita precedente.
+      answeredFor.clear();
+      localStorage.removeItem('quizzone_answered');
+      lastQ=0;
       show('waiting');
       return;
     }
