@@ -27,10 +27,10 @@ body{font-family:"Nunito",system-ui,sans-serif;color:var(--testo);min-height:100
 .tool:hover{border-color:var(--blu);color:var(--blu-scuro)}
 .tool:active{transform:translateY(1px)}
 .board{background:linear-gradient(180deg,#0e1836,#141f4a);border:2px solid #26326b;border-radius:22px;padding:8px;
-  box-shadow:0 18px 40px rgba(11,18,40,.4);position:relative;overflow:hidden;touch-action:none}
-.board svg{width:100%;height:auto;display:block;touch-action:none}
+  box-shadow:0 18px 40px rgba(11,18,40,.4);position:relative;overflow:hidden;touch-action:none;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+.board svg{width:100%;height:auto;display:block;touch-action:none;-webkit-user-select:none;user-select:none}
 .slot{fill:none;stroke:rgba(190,214,255,.28);stroke-width:1.4;stroke-dasharray:4 6}
-.pc{cursor:grab}
+.pc{cursor:grab;touch-action:none}
 .pc.locked{cursor:default}
 .pc .edge{fill:none;stroke:rgba(255,255,255,.6);stroke-width:1.2}
 .pc.drag{cursor:grabbing}
@@ -297,7 +297,14 @@ function piecePath(i,j){
   return d+" Z";
 }
 
-function svgPoint(e){ const p=board.createSVGPoint(); p.x=e.clientX; p.y=e.clientY; return p.matrixTransform(board.getScreenCTM().inverse()); }
+function svgPoint(e){
+  const ctm=board.getScreenCTM();
+  if(!ctm) return null;
+  const p=board.createSVGPoint();
+  p.x=e.clientX;
+  p.y=e.clientY;
+  return p.matrixTransform(ctm.inverse());
+}
 
 function costruisci(){
   H=[]; V=[];
@@ -347,19 +354,116 @@ function scatter(){
 }
 
 let cur=null, off={x:0,y:0};
-function onDown(e,p){ if(p.locked) return; startTimer(); cur=p; p.g.classList.add("drag"); p.g.parentNode.appendChild(p.g);
-  board.setPointerCapture(e.pointerId); const q=svgPoint(e); off.x=q.x-p.tx; off.y=q.y-p.ty; e.preventDefault(); }
-board.addEventListener("pointermove", e=>{ if(!cur) return; const q=svgPoint(e); setPos(cur, q.x-off.x, q.y-off.y); });
-function onUp(){ if(!cur) return; const p=cur; cur=null; p.g.classList.remove("drag");
+let activePointerId=null;
+let pendingPointerEvent=null;
+let dragFrame=null;
+
+function applyPendingDrag(){
+  dragFrame=null;
+  if(!cur || !pendingPointerEvent) return;
+  const e=pendingPointerEvent;
+  pendingPointerEvent=null;
+  const q=svgPoint(e);
+  if(!q) return;
+  setPos(cur, q.x-off.x, q.y-off.y);
+}
+
+function onDown(e,p){
+  if(p.locked) return;
+  if(cur!==null) return;
+  if(e.isPrimary===false) return;
+
+  startTimer();
+  const q=svgPoint(e);
+  if(!q) return;
+
+  cur=p;
+  activePointerId=e.pointerId;
+  pendingPointerEvent=null;
+
+  p.g.classList.add("drag");
+  p.g.parentNode.appendChild(p.g);
+
+  // Riduce il carico grafico durante il trascinamento.
+  p.g.setAttribute("filter","none");
+
+  try{ board.setPointerCapture(e.pointerId); }catch(_){}
+
+  off.x=q.x-p.tx;
+  off.y=q.y-p.ty;
+  e.preventDefault();
+}
+
+board.addEventListener("pointermove", e=>{
+  if(!cur) return;
+  if(e.pointerId!==activePointerId) return;
+
+  pendingPointerEvent=e;
+
+  if(dragFrame===null){
+    dragFrame=requestAnimationFrame(applyPendingDrag);
+  }
+
+  e.preventDefault();
+},{passive:false});
+
+function finishDrag(e,allowSnap=true){
+  if(!cur) return;
+  if(e && activePointerId!==null && e.pointerId!==activePointerId) return;
+
+  if(dragFrame!==null){
+    cancelAnimationFrame(dragFrame);
+    dragFrame=null;
+  }
+
+  if(pendingPointerEvent){
+    const q=svgPoint(pendingPointerEvent);
+    if(q) setPos(cur, q.x-off.x, q.y-off.y);
+    pendingPointerEvent=null;
+  }
+
+  const p=cur;
+  cur=null;
+
+  p.g.classList.remove("drag");
+  p.g.setAttribute("filter","url(#psh)");
+
+  if(e && activePointerId!==null){
+    try{
+      if(board.hasPointerCapture && board.hasPointerCapture(activePointerId)){
+        board.releasePointerCapture(activePointerId);
+      }
+    }catch(_){}
+  }
+
+  activePointerId=null;
+
+  if(!allowSnap) return;
+
   const tol=0.34*Math.min(w,h);
-  if(Math.hypot(p.tx, p.ty) < tol){
-    setPos(p,0,0); p.locked=true; p.g.classList.add("locked");
-    const layer=document.getElementById("pieces"); layer.insertBefore(p.g, layer.firstChild);
-    locked++; updateCount(); pulse(p);
+  if(Math.hypot(p.tx,p.ty)<tol){
+    setPos(p,0,0);
+    p.locked=true;
+    p.g.classList.add("locked");
+    const layer=document.getElementById("pieces");
+    layer.insertBefore(p.g,layer.firstChild);
+    locked++;
+    updateCount();
+    pulse(p);
     if(locked===pieces.length) vinci();
   }
 }
-board.addEventListener("pointerup", onUp); board.addEventListener("pointercancel", onUp);
+
+function onUp(e){ finishDrag(e,true); }
+function onCancel(e){ finishDrag(e,false); }
+
+board.addEventListener("pointerup",onUp);
+board.addEventListener("pointercancel",onCancel);
+board.addEventListener("lostpointercapture",e=>{
+  if(cur && e.pointerId===activePointerId){
+    finishDrag(e,false);
+  }
+});
 
 function pulse(p){ const e=p.g.querySelector(".edge"); e.style.transition="none"; e.setAttribute("stroke","#6ee7b7"); e.setAttribute("stroke-width","2.4");
   setTimeout(()=>{ e.setAttribute("stroke","rgba(255,255,255,.6)"); e.setAttribute("stroke-width","1.2"); }, 500); }
@@ -384,6 +488,9 @@ document.getElementById("shuffle").addEventListener("click",()=>{
   locked=0; updateCount(); resetTimer(); scatter(); });
 document.getElementById("again").addEventListener("click",()=>{ document.getElementById("win").classList.remove("show");
   document.getElementById("slots").style.display=""; resetTimer(); costruisci(); });
+
+board.addEventListener("contextmenu",e=>e.preventDefault());
+board.addEventListener("dragstart",e=>e.preventDefault());
 
 costruisci();
 </script>
