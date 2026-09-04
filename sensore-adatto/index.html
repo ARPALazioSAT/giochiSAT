@@ -21,8 +21,8 @@ body{font-family:"Nunito",system-ui,sans-serif;color:var(--testo);min-height:100
 .btn{font-family:"Fredoka";font-weight:600;font-size:18px;border:none;cursor:pointer;border-radius:16px;padding:15px 26px;color:#fff;
   background:var(--blu);box-shadow:0 8px 0 #1f4fd6,0 12px 22px rgba(47,107,255,.28);transition:transform .08s,box-shadow .08s}
 .btn:hover{transform:translateY(-1px)}.btn:active{transform:translateY(4px);box-shadow:0 4px 0 #1f4fd6,0 6px 12px rgba(47,107,255,.28)}
-.btn.verde{background:var(--verde);box-shadow:0 8px 0 var(--verde-scuro),0 12px 22px rgba(34,197,94,.28)}
-.btn.verde:active{box-shadow:0 4px 0 var(--verde-scuro),0 6px 12px rgba(34,197,94,.28)}
+.btn.verde{background:var(--blu);box-shadow:0 8px 0 #1f4fd6,0 12px 22px rgba(47,107,255,.28)}
+.btn.verde:active{box-shadow:0 4px 0 #1f4fd6,0 6px 12px rgba(47,107,255,.28)}
 .btn:focus-visible{outline:3px solid var(--blu-scuro);outline-offset:3px}.btn[disabled]{opacity:.5;cursor:default;transform:none}
 .card{background:var(--card);border:2px solid var(--bordo);border-radius:26px;padding:22px;box-shadow:0 18px 40px rgba(31,43,69,.10)}
 .hidden{display:none !important}
@@ -109,6 +109,7 @@ body{font-family:"Nunito",system-ui,sans-serif;color:var(--testo);min-height:100
 @media (max-width:520px){.card{padding:18px}.hero,.result{padding:26px 18px}.hero .legenda{grid-template-columns:1fr}.foot-btn .btn{min-width:0;width:100%}}
 @media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
 </style>
+<script src="../assets/game-stats.js" defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -303,6 +304,7 @@ function buildSats(){
 }
 
 function initGioco(){
+  if(window.GiochiSATStats) window.GiochiSATStats.recordPlay("sensore-adatto");
   idx=0; monitorati=0; alPrimo=0; finito=false;
   $("#count").textContent="0"; $("#total").textContent=ROUND.length;
   $("#diario").innerHTML=""; $("#dots").innerHTML=ROUND.map(()=>'<i></i>').join("");

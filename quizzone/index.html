@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/game-stats.js" defer></script>
 <style>
 :root{--blu:#1d4ed8;--blu2:#2f6bff;--verde:#16a34a;--rosso:#dc2626;--giallo:#facc15;--testo:#17304f;--muted:#62748b;--card:#fff;--bordo:#dce8f6;--cielo1:#dff1ff;--cielo2:#f6fbff}
 *{box-sizing:border-box}body{margin:0;font-family:Nunito,system-ui,sans-serif;color:var(--testo);background:linear-gradient(180deg,var(--cielo1),var(--cielo2));min-height:100vh}
@@ -17,6 +18,7 @@
 .questionNo{font-family:Fredoka;color:var(--blu);font-weight:700;font-size:16px;margin-bottom:8px}.question{font-family:Fredoka;font-size:clamp(24px,6vw,34px);line-height:1.18;margin:0 0 18px}.options{display:grid;gap:12px}.opt{width:100%;text-align:left;border:2px solid var(--bordo);background:#fff;border-radius:18px;padding:16px;font:800 17px Nunito;cursor:pointer;display:flex;gap:12px;align-items:flex-start;color:var(--testo)}.opt .n{width:34px;height:34px;display:grid;place-items:center;flex:0 0 auto;border-radius:10px;background:#edf4ff;color:var(--blu);font-family:Fredoka;font-size:19px}.opt:hover{border-color:#a8c6ff}.opt:disabled{cursor:default;opacity:.7}.opt.selected{border-color:var(--blu2);background:#eff5ff;opacity:1}
 .msg{margin-top:16px;border-radius:16px;padding:14px 16px;font-weight:800}.ok{background:#ecfdf3;color:#166534}.info{background:#eef6ff;color:#1e40af}.warn{background:#fff7ed;color:#9a3412}.err{background:#fef2f2;color:#991b1b}.spinner{width:24px;height:24px;border:3px solid #d6e4f5;border-top-color:var(--blu);border-radius:50%;animation:spin .8s linear infinite;margin:14px auto}@keyframes spin{to{transform:rotate(360deg)}}
 .joinBox{display:grid;gap:12px;margin-top:18px}.nickInput{width:100%;border:2px solid var(--bordo);border-radius:16px;padding:15px 16px;font:800 18px Nunito;color:var(--testo);background:#fff;outline:none}.nickInput:focus{border-color:var(--blu2);box-shadow:0 0 0 4px rgba(47,107,255,.10)}.joinBtn{width:100%;border:0;border-radius:16px;padding:15px 18px;background:var(--blu);color:#fff;font:800 17px Nunito;cursor:pointer;box-shadow:0 8px 20px rgba(29,78,216,.18)}.joinBtn:disabled{opacity:.55;cursor:default}.hello{font-family:Fredoka;font-size:20px;color:var(--blu);margin:10px 0 0}.footer{text-align:center;margin-top:18px;color:var(--muted);font-size:13px;font-weight:700}
+.timer{display:inline-block;margin:0 0 14px;padding:8px 13px;border-radius:999px;background:#eef6ff;color:var(--blu);font:700 18px Fredoka}.resultOptions{display:grid;gap:9px;margin-top:14px}.resultRow{padding:12px;border:2px solid var(--bordo);border-radius:14px;font-weight:800;text-align:left}.resultRow.correct{border-color:#22c55e;background:#ecfdf3}.ranking{margin-top:16px;text-align:left}.ranking div{display:flex;justify-content:space-between;padding:9px 4px;border-bottom:1px solid var(--bordo)}
 @media(max-width:520px){.wrap{padding:14px 12px 30px}.card{padding:18px}.brand img{width:50px;height:50px}.brand h1{font-size:21px}.opt{font-size:16px;padding:14px}}
 </style>
 </head>
@@ -40,11 +42,13 @@
   <section id="waiting" class="card center hidden">
     <span class="pill"><span class="dot"></span> Sei collegato</span>
     <div class="hello" id="helloNick"></div>
-    <h2 class="big">Tra poco si comincia!</h2>
-    <p class="lead">Rimani su questa pagina. Quando la regia avvierà il Quizzone comparirà automaticamente la prima domanda.</p>
+    <h2 class="big" id="waitingTitle">Tra poco si comincia!</h2>
+    <p class="lead" id="waitingText">Rimani su questa pagina. La prima domanda comparirà automaticamente.</p>
+    <div class="timer hidden" id="waitingTimer"></div>
   </section>
 
   <section id="questionCard" class="card hidden">
+    <div class="timer hidden" id="questionTimer"></div>
     <div class="questionNo" id="questionNo"></div>
     <h2 class="question" id="questionText"></h2>
     <div class="options" id="options"></div>
@@ -56,9 +60,19 @@
     <p class="lead">Guarda il monitor per scoprire la risposta corretta e vedere come hanno risposto i partecipanti.</p>
   </section>
 
+  <section id="resultCard" class="card center hidden">
+    <div class="timer" id="resultTimer"></div>
+    <div class="questionNo" id="resultNo"></div>
+    <h2 class="question" id="resultQuestion"></h2>
+    <div id="resultOptions" class="resultOptions"></div>
+    <div id="resultExplain" class="msg ok"></div>
+  </section>
+
   <section id="finished" class="card center hidden">
     <h2 class="big">Grazie per aver partecipato!</h2>
-    <p class="lead">Il Quizzone è terminato. Sul monitor trovi il risultato collettivo e ciò che abbiamo scoperto insieme.</p>
+    <p class="lead" id="finishedText">Il Quizzone è terminato.</p>
+    <div class="timer hidden" id="finalTimer"></div>
+    <div class="ranking" id="ranking"></div>
   </section>
 
   <div class="footer">ARPA Lazio · Osserva la Terra</div>
@@ -79,13 +93,23 @@ let nickname=localStorage.getItem('quizzone_nickname')||'';
 let joined=false;
 let questions=[];
 let lastQ=0;
+let lastStatus='';
+let lastResultQ=0;
+let refreshBusy=false;
+let joinedRound=Number(localStorage.getItem('quizzone_joined_round'))||null;
+let currentMode='manual';
 let answeredFor=new Set(JSON.parse(localStorage.getItem('quizzone_answered')||'[]'));
 
 const $=id=>document.getElementById(id);
 
 function show(id){
-  ['loading','joinCard','waiting','questionCard','closed','finished']
+  ['loading','joinCard','waiting','questionCard','closed','resultCard','finished']
     .forEach(x=>$(x).classList.toggle('hidden',x!==id));
+}
+
+function secondsLeft(deadline){
+  if(!deadline)return 0;
+  return Math.max(0,Math.ceil((new Date(deadline).getTime()-Date.now())/1000));
 }
 
 async function loadQuestions(){
@@ -95,7 +119,7 @@ async function loadQuestions(){
 }
 
 async function getState(){
-  const {data,error}=await sb.rpc('quiz_public_state',{p_session_code:SESSION_CODE});
+  const {data,error}=await sb.rpc('quiz_public_state_v2',{p_session_code:SESSION_CODE});
   if(error) throw error;
   return Array.isArray(data)?data[0]:data;
 }
@@ -128,8 +152,11 @@ async function joinWithNickname(){
     nickname=value;
     joined=true;
     localStorage.setItem('quizzone_nickname',nickname);
+    if(window.GiochiSATStats) window.GiochiSATStats.recordPlay('quizzone');
 
     const currentState=await getState();
+    joinedRound=currentState?currentState.auto_round:null;
+    if(joinedRound!==null)localStorage.setItem('quizzone_joined_round',String(joinedRound));
     if(currentState && currentState.status==='waiting'){
       answeredFor.clear();
       localStorage.removeItem('quizzone_answered');
@@ -146,6 +173,8 @@ async function joinWithNickname(){
       msg.textContent='Questo nickname è già in uso. Scegline un altro.';
     }else if(text.toLowerCase().includes('non valido')){
       msg.textContent='Usa solo lettere, numeri, spazi, punto, trattino o underscore.';
+    }else if(text.toLowerCase().includes('partita in corso')){
+      msg.textContent='Una partita è già in corso. Attendi il prossimo turno.';
     }else{
       msg.textContent='Non è stato possibile entrare nel Quizzone. Riprova.';
     }
@@ -179,9 +208,33 @@ function renderQuestion(pos){
   });
   $('answerMsg').classList.add('hidden');
   if(answeredFor.has(pos)){
-    $('answerMsg').textContent='✓ Risposta già registrata. Guarda il monitor per scoprire il risultato!';
+    $('answerMsg').textContent=currentMode==='auto'?'✓ Risposta già registrata. Il risultato comparirà qui.':'✓ Risposta già registrata. Guarda il monitor per scoprire il risultato!';
     $('answerMsg').className='msg ok';
   }
+}
+
+async function renderAutoResult(pos,s){
+  $('resultTimer').textContent=`Prossima domanda tra ${secondsLeft(s.phase_deadline)} s`;
+  if(lastResultQ===pos)return;
+  const q=questions.find(x=>x.position===pos); if(!q)return;
+  const {data,error}=await sb.rpc('quiz_public_results',{p_session_code:SESSION_CODE,p_question_position:pos});
+  if(error||!data||!data.length)return;
+  lastResultQ=pos;
+  $('resultNo').textContent=`Risultato · domanda ${pos} di 5`;
+  $('resultQuestion').textContent=q.question;
+  const opts=[q.option_1,q.option_2,q.option_3,q.option_4];
+  const correct=data[0].correct_option;
+  $('resultOptions').innerHTML=data.map(r=>`<div class="resultRow ${r.option_no===correct?'correct':''}">${r.option_no}. ${opts[r.option_no-1]} — ${r.percentage}% (${r.answer_count})</div>`).join('');
+  $('resultExplain').textContent=`Risposta corretta: ${opts[correct-1]}. ${data[0].explanation||''}`;
+}
+
+async function renderFinal(s){
+  $('finishedText').textContent=s.play_mode==='auto'?'Nuova partita disponibile tra poco.':'Sul monitor trovi il riepilogo finale.';
+  $('finalTimer').classList.toggle('hidden',s.play_mode!=='auto');
+  if(s.play_mode==='auto')$('finalTimer').textContent=`Nuovo turno tra ${secondsLeft(s.phase_deadline)} s`;
+  const {data}=await sb.rpc('quiz_leaderboard',{p_session_code:SESSION_CODE});
+  const ranked=(data||[]).filter(r=>Number(r.answered_questions)>0).slice(0,10);
+  $('ranking').innerHTML=ranked.map(r=>`<div><b>${r.rank_no}. ${r.nickname}</b><span>${r.correct_answers}/5</span></div>`).join('')||'<p>Nessuna risposta registrata.</p>';
 }
 
 async function submitAnswer(pos,opt,btn){
@@ -203,7 +256,7 @@ async function submitAnswer(pos,opt,btn){
     }else{
       answeredFor.add(pos);
       localStorage.setItem('quizzone_answered',JSON.stringify([...answeredFor]));
-      $('answerMsg').textContent='✓ Risposta registrata. Guarda il monitor per scoprire il risultato!';
+      $('answerMsg').textContent=currentMode==='auto'?'✓ Risposta registrata. Il risultato comparirà qui.':'✓ Risposta registrata. Guarda il monitor per scoprire il risultato!';
       $('answerMsg').className='msg ok';
     }
   }catch(e){
@@ -213,20 +266,42 @@ async function submitAnswer(pos,opt,btn){
 }
 
 async function refresh(){
+  if(refreshBusy)return;
+  refreshBusy=true;
   try{
     const s=await getState();
     if(!s){
       if(joined) show('waiting');
       return;
     }
+    currentMode=s.play_mode||'manual';
+
+    if(s.play_mode==='auto')await sb.rpc('quiz_auto_tick');
+
+    if(joined&&joinedRound!==null&&s.auto_round!==joinedRound){
+      joined=false;
+      joinedRound=null;
+      localStorage.removeItem('quizzone_joined_round');
+      answeredFor.clear();
+      localStorage.removeItem('quizzone_answered');
+      show('joinCard');
+      lastStatus=s.status;
+      return;
+    }
 
     if(s.status==='finished'){
       show('finished');
+      await renderFinal(s);
+      lastStatus='finished';
       return;
     }
 
     if(!joined){
-      show('joinCard');
+      if(s.play_mode==='auto'&&s.status==='active'){
+        show('closed');
+        $('closed').querySelector('.lead').textContent='Una partita è in corso. Attendi il prossimo turno per partecipare.';
+      }else show('joinCard');
+      lastStatus=s.status;
       return;
     }
 
@@ -236,7 +311,25 @@ async function refresh(){
       answeredFor.clear();
       localStorage.removeItem('quizzone_answered');
       lastQ=0;
+      lastResultQ=0;
+      if(lastStatus==='finished'){
+        joined=false;
+        show('joinCard');
+        lastStatus='waiting';
+        return;
+      }
       show('waiting');
+      if(s.play_mode==='auto'){
+        $('waitingTitle').textContent=s.auto_stage==='countdown'?'Si parte!':'In attesa dei giocatori';
+        $('waitingText').textContent=s.auto_stage==='countdown'?`Soglia raggiunta: ${s.participants} partecipanti.`:`Partecipanti collegati: ${s.participants}/${s.auto_min_participants}`;
+        $('waitingTimer').classList.toggle('hidden',s.auto_stage!=='countdown');
+        if(s.auto_stage==='countdown')$('waitingTimer').textContent=`Inizio tra ${secondsLeft(s.phase_deadline)} s`;
+      }else{
+        $('waitingTitle').textContent='Tra poco si comincia!';
+        $('waitingText').textContent='Rimani su questa pagina. Quando la regia avvierà il Quizzone comparirà automaticamente la prima domanda.';
+        $('waitingTimer').classList.add('hidden');
+      }
+      lastStatus='waiting';
       return;
     }
 
@@ -244,13 +337,24 @@ async function refresh(){
       if(s.question_open){
         show('questionCard');
         if(lastQ!==s.current_question) renderQuestion(s.current_question);
+        $('questionTimer').classList.toggle('hidden',s.play_mode!=='auto');
+        if(s.play_mode==='auto')$('questionTimer').textContent=`Tempo: ${secondsLeft(s.phase_deadline)} s`;
       }else{
-        show('closed');
+        if(s.play_mode==='auto'){
+          show('resultCard');
+          await renderAutoResult(s.current_question,s);
+        }else{
+          show('closed');
+          $('closed').querySelector('.lead').textContent='Guarda il monitor per scoprire la risposta corretta e vedere come hanno risposto i partecipanti.';
+        }
       }
     }
+    lastStatus=s.status;
   }catch(e){
     $('loading').innerHTML='<div class="msg err">Connessione non disponibile. Controlla Internet e ricarica la pagina.</div>';
     show('loading');
+  }finally{
+    refreshBusy=false;
   }
 }
 
@@ -264,6 +368,14 @@ $('nickname').value=nickname;
   try{
     await loadQuestions();
     const s=await getState();
+
+    if(nickname&&joinedRound!==null&&s&&s.auto_round===joinedRound){
+      const {error}=await sb.rpc('quiz_join',{p_session_code:SESSION_CODE,p_token:token,p_nickname:nickname});
+      if(!error){joined=true;$('helloNick').textContent=`Ciao ${nickname}!`;await ping();}
+    }else if(s&&joinedRound!==null&&s.auto_round!==joinedRound){
+      joinedRound=null;
+      localStorage.removeItem('quizzone_joined_round');
+    }
 
     if(s && s.status==='finished'){
       show('finished');

@@ -1,0 +1,37 @@
+GiochiSAT - aggiornamento statistiche e Quizzone automatico/manuale
+
+ORDINE DI INSTALLAZIONE
+
+1. Aprire il progetto giochiSAT nel pannello Supabase.
+2. Aprire SQL Editor e creare una nuova query.
+3. Copiare tutto il contenuto del file:
+   supabase_aggiornamento_statistiche_quizzone.sql
+4. Premere Run una sola volta e verificare che non compaiano errori.
+5. Solo dopo il completamento dello script SQL, caricare su GitHub tutti i file
+   e le cartelle di questo pacchetto, mantenendo la stessa struttura.
+6. Attendere l'aggiornamento di GitHub Pages.
+
+VERIFICHE RAPIDE
+
+- Home: tutti i pulsanti Gioca devono essere blu.
+- Regia: aprire /giochiSAT/quizzone-regia/ e inserire la password.
+- Selezionare Manuale o Automatica, soglia 3 o 5, tempo 15 o 20 secondi.
+- Statistiche: aprire /giochiSAT/statistiche/ con la password della regia.
+- In modalità automatica, il Quizzone deve funzionare interamente sui telefoni.
+
+CONFIGURAZIONE PREDEFINITA
+
+- Modalità iniziale: manuale
+- Soglia automatica: 5 partecipanti
+- Conto alla rovescia: 5 secondi
+- Domanda: 20 secondi
+- Risultato: 10 secondi
+- Classifica finale: 30 secondi
+- Reset finale: automatico solo in modalità automatica
+
+NOTE
+
+- URL e QR già esistenti restano invariati.
+- Le statistiche iniziano dalla data di installazione.
+- I conteggi sono aggregati e non identificano persone fisiche.
+- La modalità scelta nella regia resta memorizzata anche chiudendo la pagina.

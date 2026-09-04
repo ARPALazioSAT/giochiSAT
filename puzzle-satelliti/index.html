@@ -51,6 +51,7 @@ body{font-family:"Nunito",system-ui,sans-serif;color:var(--testo);min-height:100
 @keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
 @media (prefers-reduced-motion:reduce){*{animation:none !important}}
 </style>
+<script src="../assets/game-stats.js" defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -369,6 +370,7 @@ function applyPendingDrag(){
 }
 
 function onDown(e,p){
+  if(window.GiochiSATStats) window.GiochiSATStats.recordPlay("puzzle-satelliti");
   if(p.locked) return;
   if(cur!==null) return;
   if(e.isPrimary===false) return;

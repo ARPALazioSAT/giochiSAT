@@ -116,6 +116,7 @@
       .grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:11px; }
     }
   </style>
+  <script src="../assets/game-stats.js" defer></script>
 </head>
 <body>
   <main id="home-screen" class="screen home active">
@@ -256,6 +257,7 @@
     }
 
     function startGame() {
+      if (window.GiochiSATStats) window.GiochiSATStats.recordPlay("memory");
       const nick = cleanNickname(nicknameInput.value);
       if (!nick) {
         homeStatus.textContent = "Inserisci un nickname prima di giocare.";
