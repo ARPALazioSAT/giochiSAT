@@ -35,3 +35,21 @@ NOTE
 - Le statistiche iniziano dalla data di installazione.
 - I conteggi sono aggregati e non identificano persone fisiche.
 - La modalità scelta nella regia resta memorizzata anche chiudendo la pagina.
+
+AGGIUNTA SAT-DOKU (7 SETTEMBRE 2026)
+
+1. Prima di pubblicare i nuovi file, aprire il SQL Editor di Supabase.
+2. Copiare ed eseguire una sola volta il file supabase_aggiunta_sat_doku.sql.
+3. Caricare poi su GitHub tutti i file e le cartelle di questo pacchetto.
+4. Verificare dalla home il nuovo pulsante blu Gioco 7 - SAT-Doku.
+
+Il QR code e l'indirizzo principale del portale restano invariati.
+
+AGGIUNTA PAROLE IN ORBITA
+
+1. Prima di pubblicare il Gioco 8, aprire il SQL Editor di Supabase.
+2. Copiare ed eseguire una sola volta il file supabase_aggiunta_parole_in_orbita.sql.
+3. Caricare poi su GitHub tutti i file e le cartelle del nuovo pacchetto.
+4. Verificare dalla home il pulsante blu Gioco 8 - Parole in orbita.
+
+Il nuovo script mantiene abilitato anche SAT-Doku. Il QR code resta invariato.

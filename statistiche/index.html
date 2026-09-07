@@ -37,8 +37,8 @@
 const SUPABASE_URL='https://tbjbtghzzqfximtjhutk.supabase.co';
 const SUPABASE_KEY='sb_publishable_uzkoqY4PTm6VSd1fugUuPQ_VHb-wEVS';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-const games=['totale','memory','missione-satellite','quiz-terra','sensore-adatto','puzzle-satelliti','quizzone'];
-const labels={'totale':'Totale GiochiSAT','memory':'Memory Match','missione-satellite':'Missione satellite','quiz-terra':'Quiz Terra','sensore-adatto':'Sensore adatto','puzzle-satelliti':'Puzzle satelliti','quizzone':'Quizzone Live'};
+const games=['totale','memory','missione-satellite','quiz-terra','sensore-adatto','puzzle-satelliti','quizzone','sat-doku','parole-in-orbita'];
+const labels={'totale':'Totale GiochiSAT','memory':'Memory Match','missione-satellite':'Missione satellite','quiz-terra':'Quiz Terra','sensore-adatto':'Sensore adatto','puzzle-satelliti':'Puzzle satelliti','quizzone':'Quizzone Live','sat-doku':'SAT-Doku','parole-in-orbita':'Parole in orbita'};
 let rows=[],period='day'; const $=id=>document.getElementById(id);
 
 async function load(){
@@ -56,7 +56,7 @@ function render(){
   const currentRows=filtered.filter(r=>r.period_key===current);
   $('summary').innerHTML=games.map(g=>{const r=currentRows.find(x=>x.game_id===g);return `<div class="stat"><b>${r?r.player_count:0}</b><span>${labels[g]}</span></div>`}).join('');
   $('thead').innerHTML='<tr><th>Periodo</th>'+games.map(g=>`<th>${labels[g]}</th>`).join('')+'</tr>';
-  $('tbody').innerHTML=periods.map(p=>'<tr><td>'+p+'</td>'+games.map(g=>{const r=filtered.find(x=>x.period_key===p&&x.game_id===g);return `<td>${r?r.player_count:0}</td>`}).join('')+'</tr>').join('')||'<tr><td colspan="8">Nessun dato disponibile</td></tr>';
+  $('tbody').innerHTML=periods.map(p=>'<tr><td>'+p+'</td>'+games.map(g=>{const r=filtered.find(x=>x.period_key===p&&x.game_id===g);return `<td>${r?r.player_count:0}</td>`}).join('')+'</tr>').join('')||'<tr><td colspan="10">Nessun dato disponibile</td></tr>';
 }
 document.querySelectorAll('[data-period]').forEach(b=>b.onclick=()=>{period=b.dataset.period;render();});
 $('load').onclick=load;$('pwd').onkeydown=e=>{if(e.key==='Enter')load();};

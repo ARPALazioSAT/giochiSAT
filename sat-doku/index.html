@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>SAT-Doku - Giochi SAT</title>
+  <style>
+    :root{--blu:#2f6bff;--blu-scuro:#1e40af;--testo:#1f2b45;--grigio:#63718b;--bordo:#dbe7f4;--verde:#15803d;--rosso:#dc2626}
+    *{box-sizing:border-box}html,body{margin:0;padding:0}
+    body{font-family:Arial,Helvetica,sans-serif;color:var(--testo);min-height:100vh;background:linear-gradient(180deg,#dcecff,#f3f8ff 62%,#fff);-webkit-font-smoothing:antialiased}
+    button{font:inherit}.wrap{max-width:660px;margin:0 auto;padding:18px 14px 42px}
+    .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+    .identity{display:flex;align-items:center;gap:12px}.mark{width:50px;height:50px;flex:0 0 auto}.top h1{margin:0;color:#174f83;font-size:clamp(27px,7vw,38px);line-height:1}.top p{margin:4px 0 0;color:var(--grigio);font-size:14px;font-weight:700}
+    .home{color:var(--blu-scuro);background:#fff;border:2px solid var(--bordo);border-radius:12px;padding:9px 12px;text-decoration:none;font-size:14px;font-weight:800;white-space:nowrap}
+    .card{background:#fff;border:2px solid var(--bordo);border-radius:22px;padding:18px;box-shadow:0 14px 34px rgba(38,78,120,.12)}
+    .status{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:13px;font-weight:800}.status span{color:var(--grigio)}.status b{color:var(--blu-scuro)}
+    .board{width:min(100%,560px);aspect-ratio:1;margin:0 auto;display:grid;grid-template-columns:repeat(6,1fr);border:3px solid #173d70;border-radius:14px;overflow:hidden;background:#fff;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+    .cell{position:relative;border:0;border-right:1px solid rgba(23,61,112,.32);border-bottom:1px solid rgba(23,61,112,.32);padding:0;display:grid;place-items:center;cursor:pointer;color:#304760;-webkit-tap-highlight-color:transparent}
+    .cell:nth-child(6n){border-right:0}.cell:nth-child(n+31){border-bottom:0}.cell:focus-visible{outline:4px solid #facc15;outline-offset:-4px;z-index:2}.cell.conflict{box-shadow:inset 0 0 0 4px var(--rosso);background:#fee2e2!important}.cell.hinted{animation:pulse .75s ease 2}
+    .x{font-size:clamp(19px,6.8vw,38px);font-weight:800;line-height:1;color:rgba(30,64,105,.58)}
+    .sat{width:78%;height:78%;filter:drop-shadow(0 2px 2px rgba(9,30,66,.25))}.sat .panel{fill:#2563a9}.sat .grid{stroke:#a8d3ff;stroke-width:1}.sat .body{fill:#f6c453;stroke:#805a10;stroke-width:1.5}.sat .dish{fill:#f2f6fb;stroke:#52657b;stroke-width:1.4}.sat .arm{stroke:#52657b;stroke-width:2.2;stroke-linecap:round}
+    .legend{margin:14px 0 0;color:var(--grigio);font-size:14px;line-height:1.45;text-align:center}.legend strong{color:var(--testo)}
+    .actions{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:15px}.btn{border:0;border-radius:13px;padding:12px 8px;font-weight:800;cursor:pointer}.primary{background:var(--blu);color:#fff;box-shadow:0 4px 0 #1f4fd6}.secondary{background:#fff;color:var(--blu-scuro);border:2px solid var(--bordo)}.btn:active{transform:translateY(2px)}
+    .message{min-height:24px;margin:12px 0 0;text-align:center;font-weight:800;color:var(--rosso)}.message.good{color:var(--verde)}
+    dialog{border:0;border-radius:22px;padding:0;width:min(92vw,500px);color:var(--testo);box-shadow:0 24px 70px rgba(10,34,70,.35)}dialog::backdrop{background:rgba(15,35,62,.58)}.modal{padding:24px}.modal h2{margin:0 0 12px;color:#174f83}.modal ul{padding-left:22px;line-height:1.55}.modal .btn{width:100%;margin-top:5px}
+    .win{position:fixed;inset:0;display:none;place-items:center;padding:18px;background:rgba(15,35,62,.62);z-index:10}.win.show{display:grid}.winbox{width:min(92vw,440px);background:#fff;border-radius:24px;padding:28px 24px;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.3)}.win h2{font-size:30px;color:var(--blu-scuro);margin:0 0 8px}.win p{color:var(--grigio);font-weight:700;line-height:1.45}.win .btn{width:100%;font-size:17px;margin-top:8px}
+    @keyframes pulse{50%{box-shadow:inset 0 0 0 5px #facc15;transform:scale(.93)}}
+    @media(max-width:460px){.wrap{padding:12px 9px 30px}.top{align-items:flex-start}.mark{width:43px;height:43px}.top p{font-size:12px}.home{padding:8px 9px}.card{padding:11px;border-radius:18px}.actions{grid-template-columns:1fr 1fr}.actions .primary{grid-column:1/-1;grid-row:1}.legend{font-size:13px}.status{font-size:14px}}
+    @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  </style>
+  <script src="../assets/game-stats.js" defer></script>
+</head>
+<body>
+  <main class="wrap">
+    <header class="top">
+      <div class="identity">
+        <svg class="mark" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47" fill="#2f6bff"/><path d="M23 47h18v-8h18v8h18v18H59v8H41v-8H23z" fill="#f6c453"/><rect x="8" y="43" width="21" height="26" rx="2" fill="#a8d3ff"/><rect x="71" y="43" width="21" height="26" rx="2" fill="#a8d3ff"/><path d="M50 39V25m0 0 8-8m-8 8-8-8" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/></svg>
+        <div><h1>SAT-Doku</h1><p>Un satellite in ogni riga, colonna e area</p></div>
+      </div>
+      <a class="home" href="../">Giochi SAT</a>
+    </header>
+
+    <section class="card">
+      <div class="status"><span>Satelliti <b id="count">0</b>/6</span><span>Tempo <b id="time">00:00</b></span></div>
+      <div class="board" id="board" role="grid" aria-label="Griglia SAT-Doku 6 per 6"></div>
+      <p class="legend"><strong>Tocca una casella:</strong> una volta per la X, due per il satellite, tre per cancellare.</p>
+      <div class="actions">
+        <button class="btn secondary" id="rules">Istruzioni</button>
+        <button class="btn secondary" id="hint">Suggerimento</button>
+        <button class="btn primary" id="newGame">Nuova partita</button>
+      </div>
+      <p class="message" id="message" aria-live="polite"></p>
+    </section>
+  </main>
+
+  <dialog id="rulesDialog">
+    <div class="modal">
+      <h2>Come si gioca</h2>
+      <ul>
+        <li>Inserisci esattamente un satellite in ogni <strong>riga</strong>.</li>
+        <li>Inserisci esattamente un satellite in ogni <strong>colonna</strong>.</li>
+        <li>Ogni <strong>area colorata</strong> deve contenere un solo satellite.</li>
+        <li>Due satelliti non possono toccarsi in diagonale. Possono invece trovarsi sulla stessa diagonale se sono distanti.</li>
+      </ul>
+      <p>Usa le X per segnare le caselle in cui un satellite non può trovarsi.</p>
+      <button class="btn primary" id="closeRules">Ho capito</button>
+    </div>
+  </dialog>
+
+  <div class="win" id="win" role="dialog" aria-modal="true" aria-labelledby="winTitle">
+    <div class="winbox"><h2 id="winTitle">Missione completata!</h2><p id="winText"></p><button class="btn primary" id="again">Gioca ancora</button></div>
+  </div>
+
+  <template id="satellite">
+    <svg class="sat" viewBox="0 0 64 48" aria-hidden="true">
+      <g class="grid"><rect class="panel" x="1" y="14" width="19" height="20" rx="2"/><path d="M7 14v20m7-20v20M1 21h19m-19 7h19"/><rect class="panel" x="44" y="14" width="19" height="20" rx="2"/><path d="M50 14v20m7-20v20m-13-13h19m-19 7h19"/></g>
+      <path class="arm" d="M20 24h5m14 0h5M32 13V7m0 0 5-5m-5 5-5-5"/><rect class="body" x="24" y="13" width="16" height="24" rx="3"/><path class="dish" d="M25 39q7-7 14 0q-7 8-14 0Z"/>
+    </svg>
+  </template>
+
+  <script>
+  (()=>{
+    "use strict";
+    const PUZZLES=[
+      {r:["ADDBBB","DDDBBB","DDCCBB","DDCEEE","DDDEEE","FFFEEE"],s:[0,5,3,1,4,2]},
+      {r:["AABBBD","CABBBD","CABBBD","AABBBD","AEEFFD","EEFFFF"],s:[1,3,0,5,2,4]},
+      {r:["BBAAAA","BBAAAA","BBCCAA","EECCDF","EECCFF","EEEEFF"],s:[3,0,2,4,1,5]},
+      {r:["BBBCAA","BBBCCC","BBBCCC","BECCCD","BEEEEE","FFEEEE"],s:[4,1,3,5,2,0]},
+      {r:["BBBCCA","BBBCCA","BBBCCC","BBDDCC","EEDDCC","EEFFFF"],s:[5,1,4,2,0,3]},
+      {r:["ADCCCC","ADBCCC","DDBCCC","DDDCCC","DDDEEF","DDDFFF"],s:[0,2,4,1,3,5]},
+      {r:["ACCBBB","CCBBBB","CCCCBB","CCCDEB","CFFEEE","CFFEEE"],s:[0,4,1,3,5,2]},
+      {r:["DBBBBA","DBBBBB","DBBCEE","DBBEEE","DEEEEF","EEEFFF"],s:[5,1,3,0,2,4]},
+      {r:["BBBBCA","BBBCCC","BBBCCC","BBDDCC","EEDFCC","EEFFCC"],s:[5,1,4,2,0,3]},
+      {r:["ABBBBB","DDBDBB","DDDDCC","DDDEEC","DEEEEC","DEEEFF"],s:[0,2,4,1,3,5]},
+      {r:["BBBAAC","BBBBCC","BBBDDC","DDDDDC","DDDEDD","FDDDDD"],s:[4,2,5,1,3,0]},
+      {r:["AABCCC","DDBBCC","DDDCCE","DDDDEE","DDEEEE","DDFFEE"],s:[0,2,4,1,5,3]}
+    ];
+    const COLORS={A:"#fde68a",B:"#bfdbfe",C:"#bbf7d0",D:"#fecdd3",E:"#ddd6fe",F:"#fed7aa"};
+    const board=document.getElementById("board"), message=document.getElementById("message"), count=document.getElementById("count"), time=document.getElementById("time");
+    let puzzle,states=[],started=0,timer=null,last=-1,finished=false,hints=0;
+    const satMarkup=document.getElementById("satellite").innerHTML;
+    function format(ms){const s=Math.floor(ms/1000),m=Math.floor(s/60);return String(m).padStart(2,"0")+":"+String(s%60).padStart(2,"0")}
+    function startTimer(){if(started||finished)return;started=Date.now();timer=setInterval(()=>time.textContent=format(Date.now()-started),250);if(window.GiochiSATStats)window.GiochiSATStats.recordPlay("sat-doku")}
+    function stopTimer(){if(timer)clearInterval(timer);timer=null;return started?Date.now()-started:0}
+    function setMessage(text,good=false){message.textContent=text;message.classList.toggle("good",good)}
+    function render(){
+      const queens=[];states.forEach((v,i)=>{if(v===2)queens.push(i)});
+      const bad=new Set();
+      for(let a=0;a<queens.length;a++)for(let b=a+1;b<queens.length;b++){
+        const i=queens[a],j=queens[b],r1=Math.floor(i/6),c1=i%6,r2=Math.floor(j/6),c2=j%6;
+        if(r1===r2||c1===c2||puzzle.r[r1][c1]===puzzle.r[r2][c2]||(Math.abs(r1-r2)===1&&Math.abs(c1-c2)===1)){bad.add(i);bad.add(j)}
+      }
+      [...board.children].forEach((cell,i)=>{cell.innerHTML=states[i]===1?'<span class="x">×</span>':states[i]===2?satMarkup:"";cell.classList.toggle("conflict",bad.has(i));cell.setAttribute("aria-label",`Riga ${Math.floor(i/6)+1}, colonna ${i%6+1}: ${states[i]===1?'esclusa':states[i]===2?'satellite':'vuota'}`)});
+      count.textContent=queens.length;
+      if(bad.size)setMessage("Attenzione: alcuni satelliti sono in conflitto.");else if(!finished)setMessage(queens.length===6?"Controllo della costellazione…":"");
+      if(queens.length===6&&!bad.size&&!finished)win();
+    }
+    function win(){finished=true;const elapsed=stopTimer();time.textContent=format(elapsed);setMessage("Schema completato correttamente!",true);document.getElementById("winText").textContent=`Hai posizionato tutti i satelliti in ${format(elapsed)}${hints?` usando ${hints} ${hints===1?'suggerimento':'suggerimenti'}`:" senza suggerimenti"}.`;setTimeout(()=>document.getElementById("win").classList.add("show"),250)}
+    function choosePuzzle(){let next;do{next=Math.floor(Math.random()*PUZZLES.length)}while(PUZZLES.length>1&&next===last);last=next;puzzle=PUZZLES[next]}
+    function newGame(){stopTimer();choosePuzzle();states=Array(36).fill(0);started=0;finished=false;hints=0;time.textContent="00:00";count.textContent="0";setMessage("");document.getElementById("win").classList.remove("show");board.innerHTML="";
+      for(let i=0;i<36;i++){const r=Math.floor(i/6),c=i%6,cell=document.createElement("button");cell.type="button";cell.className="cell";cell.style.background=COLORS[puzzle.r[r][c]];cell.setAttribute("role","gridcell");cell.addEventListener("click",()=>{if(finished)return;startTimer();states[i]=(states[i]+1)%3;render()});board.appendChild(cell)}render()}
+    function hint(){if(finished)return;startTimer();const candidates=[];for(let r=0;r<6;r++){const i=r*6+puzzle.s[r];if(states[i]!==2)candidates.push(i)}if(!candidates.length)return;const i=candidates[Math.floor(Math.random()*candidates.length)];states[i]=2;hints++;render();const cell=board.children[i];cell.classList.remove("hinted");void cell.offsetWidth;cell.classList.add("hinted");setMessage("Il satellite suggerito è evidenziato.",true)}
+    document.getElementById("newGame").onclick=newGame;document.getElementById("again").onclick=newGame;document.getElementById("hint").onclick=hint;
+    const dialog=document.getElementById("rulesDialog");document.getElementById("rules").onclick=()=>dialog.showModal();document.getElementById("closeRules").onclick=()=>dialog.close();dialog.addEventListener("click",e=>{if(e.target===dialog)dialog.close()});
+    newGame();
+  })();
+  </script>
+</body>
+</html>
