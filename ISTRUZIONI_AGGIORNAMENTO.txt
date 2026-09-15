@@ -41,7 +41,12 @@ AGGIUNTA SAT-DOKU (7 SETTEMBRE 2026)
 1. Prima di pubblicare i nuovi file, aprire il SQL Editor di Supabase.
 2. Copiare ed eseguire una sola volta il file supabase_aggiunta_sat_doku.sql.
 3. Caricare poi su GitHub tutti i file e le cartelle di questo pacchetto.
-4. Verificare dalla home il nuovo pulsante blu Gioco 7 - SAT-Doku.
+4. Verificare dalla home il pulsante blu Gioco 7 - SAT-Doku.
+5. All'apertura del SAT-Doku scegliere uno dei due livelli:
+   - Livello base: griglia 4x4 e 4 satelliti;
+   - Livello avanzato: griglia 5x5 e 5 satelliti.
+
+La precedente versione unica 6x6 è stata sostituita dai due livelli.
 
 Il QR code e l'indirizzo principale del portale restano invariati.
 
@@ -53,3 +58,31 @@ AGGIUNTA PAROLE IN ORBITA
 4. Verificare dalla home il pulsante blu Gioco 8 - Parole in orbita.
 
 Il nuovo script mantiene abilitato anche SAT-Doku. Il QR code resta invariato.
+
+AGGIORNAMENTO VOCABOLARIO PAROLE IN ORBITA (15 SETTEMBRE 2026)
+
+- Il gioco riconosce ora le parole italiane di almeno 3 lettere presenti nel
+  vocabolario integrato, non soltanto le parole ambientali iniziali.
+- Le parole ambientali sono contrassegnate con una foglia verde.
+- Al termine vengono mostrate tutte le parole trovate e, separatamente, le
+  parole ambientali suggerite che non sono state individuate.
+- Il vocabolario funziona senza collegamenti a servizi esterni.
+- Non è necessario eseguire altri script SQL per questo aggiornamento.
+- Il file LICENZA_DIZIONARIO_ITALIANO.txt riporta fonte e licenza del
+  vocabolario utilizzato.
+
+PROVA SFIDA A DUE - SENSORE GIUSTO (15 SETTEMBRE 2026)
+
+1. Aprire il SQL Editor di Supabase.
+2. Copiare ed eseguire una sola volta il file supabase_sfida_sensore.sql.
+3. Caricare su GitHub tutti i file e le cartelle di questo pacchetto.
+4. Aprire il gioco "Monitora con il sensore giusto" su due browser o due
+   dispositivi diversi.
+5. Dal primo scegliere "Sfida a due" e poi "Cerca uno sfidante".
+6. Sul secondo ricaricare la pagina del gioco: deve comparire la sfida aperta,
+   che si può accettare oppure rifiutare per giocare da soli.
+
+È anche possibile creare una sfida privata e inviare il link a una persona
+distante. La partita usa 6 domande, 20 secondi per risposta e assegna punti per
+correttezza, rapidità e serie di tre risposte esatte. Il gioco singolo originale
+resta invariato.
