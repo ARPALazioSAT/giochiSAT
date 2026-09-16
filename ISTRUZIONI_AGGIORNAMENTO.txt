@@ -86,3 +86,10 @@ PROVA SFIDA A DUE - SENSORE GIUSTO (15 SETTEMBRE 2026)
 distante. La partita usa 6 domande, 20 secondi per risposta e assegna punti per
 correttezza, rapidità e serie di tre risposte esatte. Il gioco singolo originale
 resta invariato.
+
+AGGIUNTA DUELLO ORBITALE (16 SETTEMBRE 2026)
+
+- Il Gioco 9 è una sfida per due persone sullo stesso monitor touch.
+- In modalità simultanea il monitor deve riconoscere almeno due tocchi.
+- La modalità a turni funziona anche sui monitor che riconoscono un solo tocco.
+- Non richiede un nuovo script SQL: il gioco funziona interamente nel browser.
